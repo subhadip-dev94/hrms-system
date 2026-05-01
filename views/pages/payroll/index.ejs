@@ -1,0 +1,73 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-file-invoice-dollar mr-2 text-primary"></i> Payroll
+  </h1>
+  <a href="/payroll/run" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-play fa-sm mr-1"></i> Run Payroll
+  </a>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover mb-0" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Period</th>
+            <th>Employees</th>
+            <th>Total Gross</th>
+            <th>Total Deductions</th>
+            <th>Total Net Pay</th>
+            <th>Status</th>
+            <th>Processed By</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (payrolls && payrolls.length > 0) { %>
+            <% payrolls.forEach(function(p) { %>
+            <tr>
+              <td class="font-weight-bold">
+                <%= getMonthName(p.month) %> <%= p.year %>
+              </td>
+              <td><%= p.totalEmployees %></td>
+              <td class="text-success">₹ <%= p.totalGross.toLocaleString('en-IN') %></td>
+              <td class="text-danger">₹ <%= p.totalDeductions.toLocaleString('en-IN') %></td>
+              <td class="font-weight-bold">₹ <%= p.totalNetPay.toLocaleString('en-IN') %></td>
+              <td>
+                <% if (p.status === 'paid') { %>
+                  <span class="badge badge-success">Paid</span>
+                <% } else if (p.status === 'processed') { %>
+                  <span class="badge badge-primary">Processed</span>
+                <% } else { %>
+                  <span class="badge badge-secondary">Draft</span>
+                <% } %>
+              </td>
+              <td class="small">
+                <%= p.processedBy ? p.processedBy.firstName + ' ' + p.processedBy.lastName : '—' %>
+                <% if (p.processedAt) { %>
+                  <br><span class="text-muted"><%= new Date(p.processedAt).toLocaleDateString('en-IN') %></span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/payroll/<%= p._id %>" class="btn btn-sm btn-outline-info">
+                  <i class="fas fa-eye"></i> View
+                </a>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">
+              <i class="fas fa-file-invoice-dollar fa-2x d-block mb-2"></i>
+              No payroll records yet.
+              <a href="/payroll/run">Run the first payroll</a>.
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

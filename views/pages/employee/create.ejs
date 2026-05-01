@@ -1,0 +1,189 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-user-plus mr-2 text-primary"></i> Add New Employee
+  </h1>
+  <a href="/employees" class="btn btn-secondary btn-sm shadow-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<form action="/employees/create" method="POST" enctype="multipart/form-data">
+
+  <!-- ── Personal Information ─────────────────────────────────────────────── -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-id-card mr-1"></i> Personal Information
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+
+        <div class="form-group col-md-4">
+          <label>First Name <span class="text-danger">*</span></label>
+          <input type="text" name="firstName" class="form-control" required
+            placeholder="John" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Last Name <span class="text-danger">*</span></label>
+          <input type="text" name="lastName" class="form-control" required
+            placeholder="Doe" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Gender <span class="text-danger">*</span></label>
+          <select name="gender" class="form-control" required>
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Email <span class="text-danger">*</span></label>
+          <input type="email" name="email" class="form-control" required
+            placeholder="john.doe@company.com" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Phone</label>
+          <input type="text" name="phone" class="form-control"
+            placeholder="9876543210" maxlength="15" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Date of Birth</label>
+          <input type="date" name="dateOfBirth" class="form-control" />
+        </div>
+
+        <div class="form-group col-md-8">
+          <label>Address</label>
+          <textarea name="address" class="form-control" rows="2"
+            placeholder="Full address..."></textarea>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Profile Photo</label>
+          <div class="custom-file">
+            <input type="file" class="custom-file-input" id="profilePhoto"
+              name="profilePhoto" accept="image/*" />
+            <label class="custom-file-label" for="profilePhoto">Choose image (max 2MB)</label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Work Information ────────────────────────────────────────────────────── -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-briefcase mr-1"></i> Work Information
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+
+        <div class="form-group col-md-4">
+          <label>Designation</label>
+          <input type="text" name="designation" class="form-control"
+            placeholder="e.g. Software Engineer" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Department</label>
+          <select name="departmentId" class="form-control">
+            <option value="">Select Department</option>
+            <% departments.forEach(function(dept) { %>
+              <option value="<%= dept._id %>"><%= dept.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Manager / Reporting To</label>
+          <select name="managerId" class="form-control">
+            <option value="">No Manager</option>
+            <% managers.forEach(function(mgr) { %>
+              <option value="<%= mgr._id %>">
+                <%= mgr.firstName %> <%= mgr.lastName %> (<%= mgr.employeeCode %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Role <span class="text-danger">*</span></label>
+          <select name="role" class="form-control" required>
+            <option value="employee" selected>Employee</option>
+            <option value="hr">HR</option>
+            <option value="manager">Manager</option>
+            <option value="finance">Finance</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Joining Date</label>
+          <input type="date" name="joiningDate" class="form-control"
+            value="<%= new Date().toISOString().split('T')[0] %>" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bank Details ────────────────────────────────────────────────────────── -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-university mr-1"></i> Bank Details
+        <small class="font-weight-normal text-muted ml-2">(optional)</small>
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+
+        <div class="form-group col-md-4">
+          <label>Bank Name</label>
+          <input type="text" name="bankDetails[bankName]" class="form-control"
+            placeholder="e.g. State Bank of India" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Account Number</label>
+          <input type="text" name="bankDetails[accountNumber]" class="form-control"
+            placeholder="Account number" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>IFSC Code</label>
+          <input type="text" name="bankDetails[ifscCode]" class="form-control"
+            placeholder="e.g. SBIN0001234" style="text-transform:uppercase;" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="d-flex justify-content-end mb-4">
+    <a href="/employees" class="btn btn-secondary mr-2">Cancel</a>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-save mr-1"></i> Create Employee
+    </button>
+  </div>
+
+</form>
+
+<script>
+  // Show selected filename in custom file input
+  document.getElementById('profilePhoto').addEventListener('change', function () {
+    const label = this.nextElementSibling;
+    label.textContent = this.files[0] ? this.files[0].name : 'Choose image (max 2MB)';
+  });
+</script>

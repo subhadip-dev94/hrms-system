@@ -1,0 +1,75 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">My Documents</h1>
+</div>
+
+<% const typeKeys = Object.keys(grouped); %>
+
+<% if (typeKeys.length === 0) { %>
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle mr-2"></i>
+    No documents have been uploaded for you yet. Contact HR if you need a document.
+  </div>
+<% } else { %>
+
+  <!-- Tab navigation -->
+  <ul class="nav nav-tabs mb-4" id="docTabs" role="tablist">
+    <% typeKeys.forEach((type, i) => { %>
+      <li class="nav-item">
+        <a class="nav-link <%= i === 0 ? 'active' : '' %>" data-toggle="tab" href="#tab-<%= type.replace(/[^a-z0-9]/g, '-') %>">
+          <%= type %> <span class="badge badge-primary badge-pill ml-1"><%= grouped[type].length %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+
+  <div class="tab-content">
+    <% typeKeys.forEach((type, i) => { %>
+      <div class="tab-pane fade <%= i === 0 ? 'show active' : '' %>" id="tab-<%= type.replace(/[^a-z0-9]/g, '-') %>">
+        <div class="row">
+          <% grouped[type].forEach(doc => { %>
+            <%
+              const isExpiringSoon = doc.expiryDate && new Date(doc.expiryDate) <= new Date(Date.now() + 30*24*60*60*1000);
+              const isExpired = doc.expiryDate && new Date(doc.expiryDate) < new Date();
+            %>
+            <div class="col-lg-4 col-md-6 mb-4">
+              <div class="card shadow h-100 <%= isExpired ? 'border-left-danger' : isExpiringSoon ? 'border-left-warning' : 'border-left-primary' %>">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="font-weight-bold mb-0"><%= doc.title %></h6>
+                    <span class="badge badge-info ml-2"><%= doc.documentType %></span>
+                  </div>
+                  <% if (doc.description) { %>
+                    <p class="small text-muted mb-1"><%= doc.description %></p>
+                  <% } %>
+                  <p class="small text-muted mb-1">
+                    <i class="fas fa-file mr-1"></i>
+                    <span class="text-uppercase"><%= doc.fileType || 'file' %></span>
+                    <% if (doc.fileSize) { %> · <%= doc.fileSize %> KB<% } %>
+                  </p>
+                  <p class="small text-muted mb-1">
+                    <i class="fas fa-calendar mr-1"></i>
+                    Uploaded: <%= new Date(doc.createdAt).toLocaleDateString('en-IN') %>
+                    <% if (doc.uploadedBy) { %>by <%= doc.uploadedBy.firstName %> <%= doc.uploadedBy.lastName %><% } %>
+                  </p>
+                  <% if (doc.expiryDate) { %>
+                    <p class="small mb-1 <%= isExpired ? 'text-danger font-weight-bold' : isExpiringSoon ? 'text-warning font-weight-bold' : 'text-muted' %>">
+                      <i class="fas fa-clock mr-1"></i>
+                      Expires: <%= new Date(doc.expiryDate).toLocaleDateString('en-IN') %>
+                      <% if (isExpired) { %><span class="badge badge-danger ml-1">Expired</span><% } %>
+                      <% if (isExpiringSoon && !isExpired) { %><span class="badge badge-warning ml-1">Expiring Soon</span><% } %>
+                    </p>
+                  <% } %>
+                  <a href="/documents/<%= doc._id %>/download" class="btn btn-primary btn-sm btn-block mt-2">
+                    <i class="fas fa-download mr-1"></i> Download
+                  </a>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>

@@ -1,0 +1,87 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Convert to Employee</h1>
+  <a href="/recruitment/candidate/<%= candidate._id %>" class="btn btn-secondary btn-sm">Back</a>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Candidate Info</h6>
+      </div>
+      <div class="card-body">
+        <p><strong>Name:</strong> <%= candidate.firstName %> <%= candidate.lastName %></p>
+        <p><strong>Email:</strong> <%= candidate.email %></p>
+        <p><strong>Phone:</strong> <%= candidate.phone %></p>
+        <% if (candidate.offerDetails) { %>
+          <p><strong>Offered Salary:</strong> ₹<%= (candidate.offerDetails.offeredSalary || 0).toLocaleString('en-IN') %></p>
+          <p><strong>Joining Date:</strong> <%= candidate.offerDetails.joiningDate ? new Date(candidate.offerDetails.joiningDate).toLocaleDateString('en-IN') : '—' %></p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">Employee Details</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/recruitment/candidate/<%= candidate._id %>/convert">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Role <span class="text-danger">*</span></label>
+                <select name="role" class="form-control" required>
+                  <% ['employee','manager','hr','finance','admin'].forEach(r => { %>
+                    <option value="<%= r %>"><%= r %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Designation</label>
+                <input type="text" name="designation" class="form-control"
+                  value="<%= candidate.jobId ? candidate.jobId.title : '' %>">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Department</label>
+                <select name="departmentId" class="form-control">
+                  <option value="">— Select —</option>
+                  <% departments.forEach(d => { %>
+                    <option value="<%= d._id %>"><%= d.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Manager</label>
+                <select name="managerId" class="form-control">
+                  <option value="">— None —</option>
+                  <% employees.filter(e => ['manager','admin','hr'].includes(e.role)).forEach(e => { %>
+                    <option value="<%= e._id %>"><%= e.firstName %> <%= e.lastName %> (<%= e.role %>)</option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> A user account will be auto-created. The employee and their manager will receive login credentials by email.
+          </div>
+
+          <button type="submit" class="btn btn-success">Convert to Employee</button>
+          <a href="/recruitment/candidate/<%= candidate._id %>" class="btn btn-secondary ml-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,196 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-paper-plane mr-2 text-primary"></i> Apply for Leave
+  </h1>
+  <a href="/leaves/my" class="btn btn-secondary btn-sm shadow-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<div class="row">
+  <!-- Leave Form -->
+  <div class="col-lg-8">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-edit mr-1"></i> Leave Application
+        </h6>
+      </div>
+      <div class="card-body">
+        <form action="/leaves" method="POST" id="leaveForm">
+
+          <div class="form-group">
+            <label>Leave Type <span class="text-danger">*</span></label>
+            <select name="leaveType" id="leaveType" class="form-control" required
+                    onchange="updateBalance(this.value)">
+              <option value="">Select leave type</option>
+              <option value="casual">Casual Leave</option>
+              <option value="sick">Sick Leave</option>
+              <option value="earned">Earned Leave</option>
+              <option value="unpaid">Unpaid Leave</option>
+            </select>
+            <div id="balanceHint" class="mt-1 small text-info" style="display:none;"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>Start Date <span class="text-danger">*</span></label>
+              <input type="date" name="startDate" id="startDate" class="form-control" required
+                     min="<%= new Date().toISOString().split('T')[0] %>"
+                     onchange="updateDayCount()" />
+            </div>
+            <div class="form-group col-md-6">
+              <label>End Date <span class="text-danger">*</span></label>
+              <input type="date" name="endDate" id="endDate" class="form-control" required
+                     min="<%= new Date().toISOString().split('T')[0] %>"
+                     onchange="updateDayCount()" />
+            </div>
+          </div>
+
+          <div id="dayCountBadge" class="mb-3" style="display:none;">
+            <span class="badge badge-primary px-3 py-2">
+              <i class="fas fa-calendar-check mr-1"></i>
+              <span id="dayCountText">0</span> working day(s) selected
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label>Reason <span class="text-danger">*</span></label>
+            <textarea name="reason" class="form-control" rows="3" required
+              placeholder="Brief reason for leave..."></textarea>
+          </div>
+
+          <hr />
+          <div class="d-flex justify-content-end">
+            <a href="/leaves/my" class="btn btn-secondary mr-2">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane mr-1"></i> Submit Application
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: Balance + Upcoming Holidays -->
+  <div class="col-lg-4">
+
+    <!-- Leave Balance -->
+    <% if (balance) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-wallet mr-1"></i> Your Leave Balance
+        </h6>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="thead-light">
+            <tr><th>Type</th><th class="text-center">Available</th><th class="text-center">Total</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Casual</td>
+              <td class="text-center font-weight-bold text-primary"><%= balance.casual.remaining %></td>
+              <td class="text-center text-muted"><%= balance.casual.total %></td>
+            </tr>
+            <tr>
+              <td>Sick</td>
+              <td class="text-center font-weight-bold text-danger"><%= balance.sick.remaining %></td>
+              <td class="text-center text-muted"><%= balance.sick.total %></td>
+            </tr>
+            <tr>
+              <td>Earned</td>
+              <td class="text-center font-weight-bold text-success"><%= balance.earned.remaining %></td>
+              <td class="text-center text-muted"><%= balance.earned.total %></td>
+            </tr>
+            <tr>
+              <td>Unpaid</td>
+              <td class="text-center text-muted" colspan="2">Unlimited</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Upcoming Holidays -->
+    <% if (upcomingHolidays && upcomingHolidays.length > 0) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-warning">
+          <i class="fas fa-calendar-alt mr-1"></i> Upcoming Holidays
+        </h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          <% upcomingHolidays.forEach(function(h) { %>
+          <li class="list-group-item py-2 px-3 d-flex align-items-center justify-content-between">
+            <div>
+              <div class="small font-weight-bold"><%= h.name %></div>
+              <div class="text-muted" style="font-size:11px;">
+                <%= new Date(h.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', weekday:'short' }) %>
+              </div>
+            </div>
+            <span class="badge <%= h.type === 'public' ? 'badge-success' : 'badge-warning' %> badge-sm">
+              <%= h.type %>
+            </span>
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</div>
+
+<script>
+  const balanceData = {
+    <% if (balance) { %>
+    casual: <%= balance.casual.remaining %>,
+    sick:   <%= balance.sick.remaining %>,
+    earned: <%= balance.earned.remaining %>,
+    unpaid: 999
+    <% } else { %>
+    casual: 0, sick: 0, earned: 0, unpaid: 999
+    <% } %>
+  };
+
+  function updateBalance(type) {
+    const hint = document.getElementById('balanceHint');
+    if (!type || type === 'unpaid') {
+      hint.style.display = 'none';
+      return;
+    }
+    const avail = balanceData[type] !== undefined ? balanceData[type] : 0;
+    hint.style.display = 'block';
+    hint.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Available balance: <strong>' + avail + ' day(s)</strong>';
+    hint.className = 'mt-1 small ' + (avail > 0 ? 'text-info' : 'text-danger');
+  }
+
+  function updateDayCount() {
+    const start = document.getElementById('startDate').value;
+    const end   = document.getElementById('endDate').value;
+    const badge = document.getElementById('dayCountBadge');
+    const text  = document.getElementById('dayCountText');
+
+    if (!start || !end) { badge.style.display = 'none'; return; }
+
+    const s = new Date(start);
+    const e = new Date(end);
+    if (e < s) { badge.style.display = 'none'; return; }
+
+    let days = 0;
+    const cur = new Date(s);
+    while (cur <= e) {
+      const d = cur.getDay();
+      if (d !== 0 && d !== 6) days++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    text.textContent = days;
+    badge.style.display = 'block';
+  }
+</script>

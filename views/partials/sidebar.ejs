@@ -1,0 +1,337 @@
+<!-- ════ Sidebar ════════════════════════════════════════════════════════════ -->
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+  <!-- Brand -->
+  <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
+    <div class="sidebar-brand-icon"><i class="fas fa-users-cog"></i></div>
+    <div class="sidebar-brand-text mx-3">HRMS</div>
+  </a>
+
+  <hr class="sidebar-divider my-0" />
+
+  <!-- Dashboard -->
+  <li class="nav-item <%= currentPath === '/dashboard' || currentPath === '/' ? 'active' : '' %>">
+    <a class="nav-link" href="/dashboard">
+      <i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span>
+    </a>
+  </li>
+
+  <!-- ── EMPLOYEES (admin/hr) ──────────────────────────────────────────────── -->
+  <% if (user && ['admin','hr'].includes(user.role)) { %>
+  <% const empActive = currentPath.startsWith('/employees') || currentPath.startsWith('/departments'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= empActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseEmployees"
+       aria-expanded="<%= empActive %>" aria-controls="collapseEmployees">
+      <i class="fas fa-fw fa-user-tie"></i><span>Employees</span>
+    </a>
+    <div id="collapseEmployees" class="collapse <%= empActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/employees' ? 'active' : '' %>" href="/employees">All Employees</a>
+        <a class="collapse-item <%= currentPath === '/employees/create' ? 'active' : '' %>" href="/employees/create">Add Employee</a>
+        <a class="collapse-item <%= currentPath.startsWith('/departments') ? 'active' : '' %>" href="/departments">Departments</a>
+      </div>
+    </div>
+  </li>
+  <% } %>
+
+  <!-- ── ATTENDANCE ────────────────────────────────────────────────────────── -->
+  <% const attActive = currentPath.startsWith('/attendance'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= attActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseAttendance"
+       aria-expanded="<%= attActive %>" aria-controls="collapseAttendance">
+      <i class="fas fa-fw fa-calendar-check"></i><span>Attendance</span>
+    </a>
+    <div id="collapseAttendance" class="collapse <%= attActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/attendance/my' ? 'active' : '' %>" href="/attendance/my">My Attendance</a>
+        <% if (user && ['admin','hr'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/attendance' ? 'active' : '' %>" href="/attendance">All Attendance</a>
+        <a class="collapse-item <%= currentPath === '/attendance/report' ? 'active' : '' %>" href="/attendance/report">Report</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── LEAVE ─────────────────────────────────────────────────────────────── -->
+  <% const leaveActive = currentPath.startsWith('/leaves') || currentPath.startsWith('/holidays'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= leaveActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseLeave"
+       aria-expanded="<%= leaveActive %>" aria-controls="collapseLeave">
+      <i class="fas fa-fw fa-plane-departure"></i><span>Leave</span>
+    </a>
+    <div id="collapseLeave" class="collapse <%= leaveActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/leaves/my' ? 'active' : '' %>" href="/leaves/my">My Leaves</a>
+        <% if (user && !['admin','hr'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/leaves/create' ? 'active' : '' %>" href="/leaves/create">Apply Leave</a>
+        <% } %>
+        <% if (user && ['admin','hr','manager'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/leaves/approvals' ? 'active' : '' %>" href="/leaves/approvals">Approvals</a>
+        <% } %>
+        <% if (user && ['admin','hr'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/leaves' ? 'active' : '' %>" href="/leaves">All Leaves</a>
+        <% } %>
+        <a class="collapse-item <%= currentPath === '/holidays' ? 'active' : '' %>" href="/holidays">Holiday Calendar</a>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── PAYROLL (admin/hr/finance) ────────────────────────────────────────── -->
+  <% if (user && ['admin','hr','finance'].includes(user.role)) { %>
+  <% const payActive = currentPath.startsWith('/salary') || currentPath.startsWith('/payroll') || currentPath === '/payslips/my'; %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= payActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapsePayroll"
+       aria-expanded="<%= payActive %>" aria-controls="collapsePayroll">
+      <i class="fas fa-fw fa-money-bill-wave"></i><span>Payroll</span>
+    </a>
+    <div id="collapsePayroll" class="collapse <%= payActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath.startsWith('/salary') ? 'active' : '' %>" href="/salary">Salary Structures</a>
+        <a class="collapse-item <%= currentPath.startsWith('/payroll') ? 'active' : '' %>" href="/payroll">Run Payroll</a>
+        <a class="collapse-item <%= currentPath === '/payslips/my' ? 'active' : '' %>" href="/payslips/my">My Payslips</a>
+      </div>
+    </div>
+  </li>
+  <% } else { %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item <%= currentPath === '/payslips/my' ? 'active' : '' %>">
+    <a class="nav-link" href="/payslips/my">
+      <i class="fas fa-fw fa-receipt"></i><span>My Payslips</span>
+    </a>
+  </li>
+  <% } %>
+
+  <!-- ── TIMESHEET ──────────────────────────────────────────────────────────── -->
+  <% const tsActive = currentPath.startsWith('/timesheet'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= tsActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseTimesheet"
+       aria-expanded="<%= tsActive %>" aria-controls="collapseTimesheet">
+      <i class="fas fa-fw fa-clock"></i><span>Timesheet</span>
+    </a>
+    <div id="collapseTimesheet" class="collapse <%= tsActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/timesheet' ? 'active' : '' %>" href="/timesheet">My Timesheet</a>
+        <a class="collapse-item <%= currentPath === '/timesheet/log' ? 'active' : '' %>" href="/timesheet/log">Log Work</a>
+        <% if (user && ['admin','hr','manager'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/timesheet/report' ? 'active' : '' %>" href="/timesheet/report">Report</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── PERFORMANCE ────────────────────────────────────────────────────────── -->
+  <% const perfActive = currentPath.startsWith('/performance'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= perfActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapsePerformance"
+       aria-expanded="<%= perfActive %>" aria-controls="collapsePerformance">
+      <i class="fas fa-fw fa-bullseye"></i><span>Performance</span>
+    </a>
+    <div id="collapsePerformance" class="collapse <%= perfActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/performance' ? 'active' : '' %>" href="/performance">My KPIs</a>
+        <a class="collapse-item <%= currentPath === '/performance/my-reviews' ? 'active' : '' %>" href="/performance/my-reviews">My Reviews</a>
+        <% if (user && ['admin','hr','manager'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/performance/team' ? 'active' : '' %>" href="/performance/team">Team Performance</a>
+        <a class="collapse-item <%= currentPath === '/performance/create' ? 'active' : '' %>" href="/performance/create">Assign KPI</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── RECRUITMENT ───────────────────────────────────────────────────────── -->
+  <% const recActive = currentPath.startsWith('/recruitment'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= recActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseRecruitment"
+       aria-expanded="<%= recActive %>" aria-controls="collapseRecruitment">
+      <i class="fas fa-fw fa-briefcase"></i><span>Recruitment</span>
+    </a>
+    <div id="collapseRecruitment" class="collapse <%= recActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/recruitment' ? 'active' : '' %>" href="/recruitment">Job Postings</a>
+        <% if (user && ['admin','hr'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/recruitment/create' ? 'active' : '' %>" href="/recruitment/create">Add Job Posting</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── EXPENSES ──────────────────────────────────────────────────────────── -->
+  <% const expActive = currentPath.startsWith('/expense'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= expActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseExpenses"
+       aria-expanded="<%= expActive %>" aria-controls="collapseExpenses">
+      <i class="fas fa-fw fa-wallet"></i><span>Expenses</span>
+    </a>
+    <div id="collapseExpenses" class="collapse <%= expActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/expense' ? 'active' : '' %>" href="/expense">My Expenses</a>
+        <a class="collapse-item <%= currentPath === '/expense/create' ? 'active' : '' %>" href="/expense/create">Submit Expense</a>
+        <% if (user && ['admin','hr','finance','manager'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/expense/approvals' ? 'active' : '' %>" href="/expense/approvals">Approvals</a>
+        <% } %>
+        <% if (user && ['admin','hr','finance'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/expense/all' ? 'active' : '' %>" href="/expense/all">All Expenses</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── ANNOUNCEMENTS ─────────────────────────────────────────────────────── -->
+  <% const annActive = currentPath.startsWith('/announcements'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= annActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseAnnouncements"
+       aria-expanded="<%= annActive %>" aria-controls="collapseAnnouncements">
+      <i class="fas fa-fw fa-bullhorn"></i><span>Announcements</span>
+    </a>
+    <div id="collapseAnnouncements" class="collapse <%= annActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/announcements' ? 'active' : '' %>" href="/announcements">All Announcements</a>
+        <% if (user && ['admin','hr'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/announcements/create' ? 'active' : '' %>" href="/announcements/create">Create New</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── DOCUMENTS ─────────────────────────────────────────────────────────── -->
+  <% const docActive = currentPath.startsWith('/documents'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= docActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseDocuments"
+       aria-expanded="<%= docActive %>" aria-controls="collapseDocuments">
+      <i class="fas fa-fw fa-file-alt"></i><span>Documents</span>
+    </a>
+    <div id="collapseDocuments" class="collapse <%= docActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/documents/my' ? 'active' : '' %>" href="/documents/my">My Documents</a>
+        <% if (user && ['admin','hr'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/documents' ? 'active' : '' %>" href="/documents">
+          All Documents
+          <% if (typeof expiringDocCount !== 'undefined' && expiringDocCount > 0) { %>
+            <span class="badge badge-warning badge-sm ml-1"><%= expiringDocCount %></span>
+          <% } %>
+        </a>
+        <a class="collapse-item <%= currentPath === '/documents/upload' ? 'active' : '' %>" href="/documents/upload">Upload Document</a>
+        <% } %>
+      </div>
+    </div>
+  </li>
+
+  <!-- ── OFFBOARDING (admin/hr) ────────────────────────────────────────────── -->
+  <% if (user && ['admin','hr'].includes(user.role)) { %>
+  <% const offActive = currentPath.startsWith('/offboarding'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= offActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseOffboarding"
+       aria-expanded="<%= offActive %>" aria-controls="collapseOffboarding">
+      <i class="fas fa-fw fa-door-open"></i><span>Offboarding</span>
+    </a>
+    <div id="collapseOffboarding" class="collapse <%= offActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/offboarding' ? 'active' : '' %>" href="/offboarding">All Offboarding</a>
+        <a class="collapse-item <%= currentPath === '/offboarding/create' ? 'active' : '' %>" href="/offboarding/create">Initiate Offboarding</a>
+      </div>
+    </div>
+  </li>
+  <% } %>
+
+  <!-- ── REPORTS (admin/hr/finance/manager) ────────────────────────────────── -->
+  <% if (user && ['admin','hr','finance','manager'].includes(user.role)) { %>
+  <% const rptActive = currentPath.startsWith('/reports'); %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item">
+    <a class="nav-link <%= rptActive ? '' : 'collapsed' %>" href="javascript:void(0)"
+       data-toggle="collapse" data-target="#collapseReports"
+       aria-expanded="<%= rptActive %>" aria-controls="collapseReports">
+      <i class="fas fa-fw fa-chart-pie"></i><span>Reports</span>
+    </a>
+    <div id="collapseReports" class="collapse <%= rptActive ? 'show' : '' %>">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <a class="collapse-item <%= currentPath === '/reports' ? 'active' : '' %>" href="/reports">Overview</a>
+        <a class="collapse-item <%= currentPath === '/reports/attendance' ? 'active' : '' %>" href="/reports/attendance">Attendance</a>
+        <a class="collapse-item <%= currentPath === '/reports/leave' ? 'active' : '' %>" href="/reports/leave">Leave</a>
+        <% if (user && ['admin','hr','finance'].includes(user.role)) { %>
+        <a class="collapse-item <%= currentPath === '/reports/payroll' ? 'active' : '' %>" href="/reports/payroll">Payroll</a>
+        <% } %>
+        <a class="collapse-item <%= currentPath === '/reports/performance' ? 'active' : '' %>" href="/reports/performance">Performance</a>
+        <a class="collapse-item <%= currentPath === '/reports/headcount' ? 'active' : '' %>" href="/reports/headcount">Headcount</a>
+      </div>
+    </div>
+  </li>
+  <% } %>
+
+  <!-- ── ADMIN / HR: MANAGE PASSWORDS ─────────────────────────────────────── -->
+  <% if (user && ['admin','hr'].includes(user.role)) { %>
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item <%= currentPath.startsWith('/auth/manage-passwords') ? 'active' : '' %>">
+    <a class="nav-link" href="/auth/manage-passwords">
+      <i class="fas fa-fw fa-users-cog"></i>
+      <span><%= user.role === 'hr' ? 'Employee Passwords' : 'Manage Passwords' %></span>
+    </a>
+  </li>
+  <% } %>
+
+  <!-- ── MY PROFILE + CHANGE PASSWORD (all users) ─────────────────────────── -->
+  <hr class="sidebar-divider my-0" />
+  <li class="nav-item <%= currentPath === '/profile' ? 'active' : '' %>">
+    <a class="nav-link" href="/profile">
+      <i class="fas fa-fw fa-user-circle"></i><span>My Profile</span>
+    </a>
+  </li>
+  <li class="nav-item <%= currentPath === '/auth/change-password' ? 'active' : '' %>">
+    <a class="nav-link" href="/auth/change-password">
+      <i class="fas fa-fw fa-key"></i><span>Change Password</span>
+    </a>
+  </li>
+
+  <!-- ── USER CARD + LOGOUT ───────────────────────────────────────────────── -->
+  <hr class="sidebar-divider mt-auto" />
+  <div class="mx-2 mb-3 p-2 rounded" style="background:rgba(0,0,0,0.18);">
+    <div class="d-flex align-items-center mb-2">
+      <% if (currentUser && currentUser.profilePhoto) { %>
+        <img src="<%= currentUser.profilePhoto %>" class="rounded-circle mr-2 flex-shrink-0"
+             width="38" height="38"
+             style="object-fit:cover; border:2px solid rgba(255,255,255,0.3);" />
+      <% } else { %>
+        <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(currentUser ? currentUser.name : 'U') %>&background=ffffff&color=4e73df&size=38&bold=true"
+             class="rounded-circle mr-2 flex-shrink-0" width="38" height="38"
+             style="border:2px solid rgba(255,255,255,0.3);" />
+      <% } %>
+      <div style="min-width:0;">
+        <div class="text-white font-weight-bold text-truncate" style="font-size:0.78rem;line-height:1.3;">
+          <%= currentUser ? currentUser.name : 'User' %>
+        </div>
+        <div class="text-capitalize text-truncate" style="font-size:0.68rem;color:rgba(255,255,255,0.55);line-height:1.3;">
+          <%= currentUser ? currentUser.role : '' %>
+        </div>
+      </div>
+    </div>
+    <a href="#" data-toggle="modal" data-target="#logoutModal"
+       class="btn btn-block btn-sm font-weight-bold"
+       style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.85);font-size:0.73rem;padding:0.28rem 0.5rem;">
+      <i class="fas fa-sign-out-alt mr-1"></i> Logout
+    </a>
+  </div>
+
+</ul>
+<!-- ════ End Sidebar ════════════════════════════════════════════════════════ -->

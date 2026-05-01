@@ -1,0 +1,100 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-building mr-2 text-primary"></i> Departments
+  </h1>
+  <a href="/departments/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus fa-sm mr-1"></i> Add Department
+  </a>
+</div>
+
+<!-- Departments Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">
+      All Departments
+      <span class="badge badge-primary ml-2"><%= departments.length %></span>
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th style="width:100px;">Code</th>
+            <th>Department Name</th>
+            <th>Description</th>
+            <th>Manager</th>
+            <th style="width:90px;" class="text-center">Employees</th>
+            <th style="width:80px;" class="text-center">Status</th>
+            <th style="width:110px;" class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (departments && departments.length > 0) { %>
+            <% departments.forEach(function(dept) { %>
+            <tr>
+              <td>
+                <span class="badge badge-info font-weight-bold px-2">
+                  <%= dept.code %>
+                </span>
+              </td>
+              <td class="font-weight-bold"><%= dept.name %></td>
+              <td class="small text-muted"><%= dept.description || '—' %></td>
+              <td>
+                <% if (dept.managerId) { %>
+                  <i class="fas fa-user-tie fa-xs mr-1 text-primary"></i>
+                  <%= dept.managerId.firstName %> <%= dept.managerId.lastName %>
+                <% } else { %>
+                  <span class="text-muted">—</span>
+                <% } %>
+              </td>
+              <td class="text-center">
+                <span class="badge <%= dept.employeeCount > 0 ? 'badge-primary' : 'badge-light border' %>
+                              font-weight-bold px-2">
+                  <%= dept.employeeCount %>
+                </span>
+              </td>
+              <td class="text-center">
+                <% if (dept.isActive) { %>
+                  <span class="badge badge-success">Active</span>
+                <% } else { %>
+                  <span class="badge badge-secondary">Inactive</span>
+                <% } %>
+              </td>
+              <td class="text-center">
+                <a href="/departments/<%= dept._id %>/edit"
+                   class="btn btn-sm btn-info btn-icon mr-1" title="Edit">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <% if (dept.employeeCount === 0) { %>
+                <form action="/departments/<%= dept._id %>?_method=DELETE" method="POST"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete department \'<%= dept.name %>\'?\nThis action cannot be undone.')">
+                  <button type="submit" class="btn btn-sm btn-danger btn-icon" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+                <% } else { %>
+                  <button class="btn btn-sm btn-danger btn-icon disabled" disabled
+                    title="Cannot delete: has <%= dept.employeeCount %> active employee(s)">
+                    <i class="fas fa-lock"></i>
+                  </button>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="fas fa-building fa-3x d-block mb-3 text-gray-300"></i>
+                <strong>No departments yet</strong><br />
+                <a href="/departments/create" class="small">Create the first department</a>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

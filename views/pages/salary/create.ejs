@@ -1,0 +1,120 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-money-bill-wave mr-2 text-primary"></i> Assign Salary Structure
+  </h1>
+  <a href="/salary" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<% if (locals.errors && errors.length > 0) { %>
+<div class="alert alert-danger">
+  <ul class="mb-0">
+    <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Salary Details</h6>
+  </div>
+  <div class="card-body">
+    <form action="/salary/create" method="POST">
+
+      <div class="form-group">
+        <label>Employee <span class="text-danger">*</span></label>
+        <select name="employeeId" class="form-control" required>
+          <option value="">— Select Employee —</option>
+          <% employees.forEach(function(emp) { %>
+          <option value="<%= emp._id %>"
+            <%= locals.old && locals.old.employeeId === String(emp._id) ? 'selected' : '' %>>
+            <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+          </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Basic Salary (₹) <span class="text-danger">*</span></label>
+            <input type="number" name="basicSalary" class="form-control" min="1" step="0.01"
+              value="<%= locals.old ? locals.old.basicSalary : '' %>" required>
+            <small class="form-text text-muted">HRA (40%) and deductions are auto-calculated.</small>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Special Allowance (₹)</label>
+            <input type="number" name="specialAllowance" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.specialAllowance : 0 %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Transport Allowance (₹)</label>
+            <input type="number" name="transportAllowance" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.transportAllowance : 0 %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Medical Allowance (₹)</label>
+            <input type="number" name="medicalAllowance" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.medicalAllowance : 0 %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Other Allowances (₹)</label>
+            <input type="number" name="otherAllowances" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.otherAllowances : 0 %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Other Deductions (₹)</label>
+            <input type="number" name="otherDeductions" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.otherDeductions : 0 %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Effective From <span class="text-danger">*</span></label>
+            <input type="date" name="effectiveFrom" class="form-control"
+              value="<%= locals.old ? locals.old.effectiveFrom : '' %>" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Remarks</label>
+            <input type="text" name="remarks" class="form-control" maxlength="200"
+              placeholder="Optional note"
+              value="<%= locals.old ? locals.old.remarks : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info small">
+        <strong>Auto-calculated:</strong>
+        HRA = 40% of Basic &nbsp;|&nbsp;
+        PF = 12% of Basic &nbsp;|&nbsp;
+        ESI = 0.75% of Gross (if Gross ≤ ₹21,000) &nbsp;|&nbsp;
+        Tax = Indian income tax slabs
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save mr-1"></i> Assign Salary
+      </button>
+      <a href="/salary" class="btn btn-outline-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>

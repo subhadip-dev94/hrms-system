@@ -1,0 +1,213 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-user-edit mr-2 text-primary"></i>
+    Edit Employee &mdash;
+    <span class="text-primary"><%= employee.firstName %> <%= employee.lastName %></span>
+  </h1>
+  <a href="/employees" class="btn btn-secondary btn-sm shadow-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<form action="/employees/<%= employee._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+
+  <!-- ── Personal Information ──────────────────────────────────────────────── -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-id-card mr-1"></i> Personal Information
+      </h6>
+      <span class="badge badge-secondary font-weight-bold"><%= employee.employeeCode %></span>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+
+        <div class="form-group col-md-4">
+          <label>First Name <span class="text-danger">*</span></label>
+          <input type="text" name="firstName" class="form-control" required
+            value="<%= employee.firstName %>" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Last Name <span class="text-danger">*</span></label>
+          <input type="text" name="lastName" class="form-control" required
+            value="<%= employee.lastName %>" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Gender <span class="text-danger">*</span></label>
+          <select name="gender" class="form-control" required>
+            <option value="male"   <%= employee.gender === 'male'   ? 'selected' : '' %>>Male</option>
+            <option value="female" <%= employee.gender === 'female' ? 'selected' : '' %>>Female</option>
+            <option value="other"  <%= employee.gender === 'other'  ? 'selected' : '' %>>Other</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Email <span class="text-danger">*</span></label>
+          <input type="email" name="email" class="form-control" required
+            value="<%= employee.email %>" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Phone</label>
+          <input type="text" name="phone" class="form-control"
+            value="<%= employee.phone || '' %>" maxlength="15" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Date of Birth</label>
+          <input type="date" name="dateOfBirth" class="form-control"
+            value="<%= employee.dateOfBirth ? new Date(employee.dateOfBirth).toISOString().split('T')[0] : '' %>" />
+        </div>
+
+        <div class="form-group col-md-8">
+          <label>Address</label>
+          <textarea name="address" class="form-control" rows="2"><%= employee.address || '' %></textarea>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Profile Photo</label>
+          <% if (employee.profilePhoto) { %>
+            <div class="mb-2">
+              <img src="<%= employee.profilePhoto %>" class="rounded-circle"
+                width="60" height="60" style="object-fit:cover;border:3px solid #4e73df;" />
+              <small class="d-block text-muted mt-1">Current photo</small>
+            </div>
+          <% } %>
+          <div class="custom-file">
+            <input type="file" class="custom-file-input" id="profilePhoto"
+              name="profilePhoto" accept="image/*" />
+            <label class="custom-file-label" for="profilePhoto">
+              <%= employee.profilePhoto ? 'Change photo...' : 'Choose image (max 2MB)' %>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Work Information ──────────────────────────────────────────────────── -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-briefcase mr-1"></i> Work Information
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+
+        <div class="form-group col-md-4">
+          <label>Designation</label>
+          <input type="text" name="designation" class="form-control"
+            value="<%= employee.designation || '' %>" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Department</label>
+          <select name="departmentId" class="form-control">
+            <option value="">Select Department</option>
+            <% departments.forEach(function(dept) { %>
+              <option value="<%= dept._id %>"
+                <%= employee.departmentId && employee.departmentId._id.toString() === dept._id.toString() ? 'selected' : '' %>>
+                <%= dept.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Manager / Reporting To</label>
+          <select name="managerId" class="form-control">
+            <option value="">No Manager</option>
+            <% managers.forEach(function(mgr) { %>
+              <option value="<%= mgr._id %>"
+                <%= employee.managerId && employee.managerId._id && employee.managerId._id.toString() === mgr._id.toString() ? 'selected' : '' %>>
+                <%= mgr.firstName %> <%= mgr.lastName %> (<%= mgr.employeeCode %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Role <span class="text-danger">*</span></label>
+          <select name="role" class="form-control" required>
+            <option value="employee" <%= employee.role === 'employee' ? 'selected' : '' %>>Employee</option>
+            <option value="hr"       <%= employee.role === 'hr'       ? 'selected' : '' %>>HR</option>
+            <option value="manager"  <%= employee.role === 'manager'  ? 'selected' : '' %>>Manager</option>
+            <option value="finance"  <%= employee.role === 'finance'  ? 'selected' : '' %>>Finance</option>
+            <option value="admin"    <%= employee.role === 'admin'    ? 'selected' : '' %>>Admin</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Status <span class="text-danger">*</span></label>
+          <select name="status" class="form-control" required>
+            <option value="active"     <%= employee.status === 'active'     ? 'selected' : '' %>>Active</option>
+            <option value="resigned"   <%= employee.status === 'resigned'   ? 'selected' : '' %>>Resigned</option>
+            <option value="terminated" <%= employee.status === 'terminated' ? 'selected' : '' %>>Terminated</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Joining Date</label>
+          <input type="date" name="joiningDate" class="form-control"
+            value="<%= employee.joiningDate ? new Date(employee.joiningDate).toISOString().split('T')[0] : '' %>" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bank Details ──────────────────────────────────────────────────────── -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-university mr-1"></i> Bank Details
+        <small class="font-weight-normal text-muted ml-2">(optional)</small>
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+
+        <div class="form-group col-md-4">
+          <label>Bank Name</label>
+          <input type="text" name="bankDetails[bankName]" class="form-control"
+            value="<%= employee.bankDetails && employee.bankDetails.bankName ? employee.bankDetails.bankName : '' %>" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>Account Number</label>
+          <input type="text" name="bankDetails[accountNumber]" class="form-control"
+            value="<%= employee.bankDetails && employee.bankDetails.accountNumber ? employee.bankDetails.accountNumber : '' %>" />
+        </div>
+
+        <div class="form-group col-md-4">
+          <label>IFSC Code</label>
+          <input type="text" name="bankDetails[ifscCode]" class="form-control"
+            style="text-transform:uppercase;"
+            value="<%= employee.bankDetails && employee.bankDetails.ifscCode ? employee.bankDetails.ifscCode : '' %>" />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="d-flex justify-content-end mb-4">
+    <a href="/employees" class="btn btn-secondary mr-2">Cancel</a>
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-save mr-1"></i> Save Changes
+    </button>
+  </div>
+
+</form>
+
+<script>
+  document.getElementById('profilePhoto').addEventListener('change', function () {
+    const label = this.nextElementSibling;
+    label.textContent = this.files[0] ? this.files[0].name : 'Choose image (max 2MB)';
+  });
+</script>

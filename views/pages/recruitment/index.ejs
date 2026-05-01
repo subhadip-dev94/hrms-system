@@ -1,0 +1,89 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Job Postings</h1>
+  <% if (['admin','hr'].includes(user.role)) { %>
+    <a href="/recruitment/create" class="btn btn-primary btn-sm shadow-sm">
+      <i class="fas fa-plus fa-sm text-white-50"></i> New Job Posting
+    </a>
+  <% } %>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/recruitment" class="form-inline">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All</option>
+          <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>>Draft</option>
+          <option value="open" <%= filters.status === 'open' ? 'selected' : '' %>>Open</option>
+          <option value="on-hold" <%= filters.status === 'on-hold' ? 'selected' : '' %>>On Hold</option>
+          <option value="closed" <%= filters.status === 'closed' ? 'selected' : '' %>>Closed</option>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% departments.forEach(d => { %>
+            <option value="<%= d._id %>" <%= filters.departmentId === String(d._id) ? 'selected' : '' %>><%= d.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mb-2">Filter</button>
+      <a href="/recruitment" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Job list -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (jobs.length === 0) { %>
+      <p class="text-center text-muted mt-3">No job postings found.</p>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+          <thead class="thead-light">
+            <tr>
+              <th>Code</th>
+              <th>Title</th>
+              <th>Department</th>
+              <th>Type</th>
+              <th>Candidates</th>
+              <th>Positions</th>
+              <th>Deadline</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% jobs.forEach(job => { %>
+              <tr>
+                <td><code><%= job.jobCode %></code></td>
+                <td><a href="/recruitment/<%= job._id %>"><%= job.title %></a></td>
+                <td><%= job.departmentId ? job.departmentId.name : '—' %></td>
+                <td><span class="badge badge-info"><%= job.jobType %></span></td>
+                <td><%= job.candidateCount %></td>
+                <td><%= job.filledPositions || 0 %> / <%= job.totalPositions %></td>
+                <td><%= job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString('en-IN') : '—' %></td>
+                <td>
+                  <% const statusMap = { draft: 'secondary', open: 'success', 'on-hold': 'warning', closed: 'danger' }; %>
+                  <span class="badge badge-<%= statusMap[job.status] || 'secondary' %>"><%= job.status %></span>
+                </td>
+                <td>
+                  <a href="/recruitment/<%= job._id %>" class="btn btn-info btn-sm">View</a>
+                  <% if (['admin','hr'].includes(user.role)) { %>
+                    <a href="/recruitment/<%= job._id %>/edit" class="btn btn-warning btn-sm">Edit</a>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

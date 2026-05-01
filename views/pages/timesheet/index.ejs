@@ -1,0 +1,162 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-clock mr-2 text-primary"></i> My Timesheet
+  </h1>
+  <a href="/timesheet/log" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus fa-sm mr-1"></i> Log Work
+  </a>
+</div>
+
+<!-- Week Navigation -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <a href="/timesheet?week=<%= prevWeek %>" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-chevron-left mr-1"></i> Prev Week
+  </a>
+  <span class="font-weight-bold text-gray-700">
+    <% const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']; %>
+    <%= weekStart.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) %>
+    &nbsp;—&nbsp;
+    <%= weekEnd.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) %>
+  </span>
+  <a href="/timesheet?week=<%= nextWeek %>" class="btn btn-outline-secondary btn-sm">
+    Next Week <i class="fas fa-chevron-right ml-1"></i>
+  </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Hours</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= totalHours %> hrs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Billable</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= billableHours %> hrs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Non-Billable</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= nonBillableHours %> hrs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Entries Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Weekly Log</h6>
+  </div>
+  <div class="card-body p-0">
+    <% if (entries.length === 0) { %>
+    <div class="text-center py-5 text-muted">
+      <i class="fas fa-clock fa-3x d-block mb-3 text-gray-300"></i>
+      No entries logged for this week.
+      <a href="/timesheet/log">Log your first entry</a>.
+    </div>
+    <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th>Date</th>
+            <th>Project</th>
+            <th>Task</th>
+            <th>Hours</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% days.forEach(function(day) { %>
+            <% const key = day.getFullYear() + '-' + String(day.getMonth()+1).padStart(2,'0') + '-' + String(day.getDate()).padStart(2,'0'); %>
+            <% const dayEntries = byDate[key] || []; %>
+            <% if (dayEntries.length > 0) { %>
+              <% dayEntries.forEach(function(entry, idx) { %>
+              <tr>
+                <% if (idx === 0) { %>
+                <td rowspan="<%= dayEntries.length %>" class="align-middle font-weight-bold small bg-light">
+                  <%= day.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short'}) %>
+                  <% if (dailyTotals[key]) { %>
+                  <br><span class="badge badge-secondary"><%= dailyTotals[key] %> hrs</span>
+                  <% if (dailyTotals[key] >= 8) { %><span class="badge badge-success ml-1">Full</span><% } %>
+                  <% if (dailyTotals[key] > 8) { %><span class="badge badge-warning ml-1">OT</span><% } %>
+                  <% } %>
+                </td>
+                <% } %>
+                <td class="small"><%= entry.projectName %></td>
+                <td class="small"><%= entry.taskDescription.length > 60 ? entry.taskDescription.substring(0,60) + '…' : entry.taskDescription %></td>
+                <td><strong><%= entry.hours %></strong></td>
+                <td>
+                  <span class="badge <%= entry.workType === 'billable' ? 'badge-success' : 'badge-secondary' %>">
+                    <%= entry.workType %>
+                  </span>
+                </td>
+                <td>
+                  <% if (entry.status === 'approved') { %>
+                    <span class="badge badge-success">Approved</span>
+                  <% } else if (entry.status === 'submitted') { %>
+                    <span class="badge badge-warning">Submitted</span>
+                  <% } else if (entry.status === 'rejected') { %>
+                    <span class="badge badge-danger">Rejected</span>
+                    <% if (entry.managerComment) { %>
+                    <small class="d-block text-danger"><%= entry.managerComment %></small>
+                    <% } %>
+                  <% } else { %>
+                    <span class="badge badge-secondary">Draft</span>
+                  <% } %>
+                </td>
+                <td class="text-nowrap">
+                  <% if (entry.status === 'draft' && !entry.isLocked) { %>
+                  <a href="/timesheet/<%= entry._id %>/edit" class="btn btn-xs btn-outline-primary mr-1" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <form action="/timesheet/<%= entry._id %>?_method=PUT" method="POST" class="d-inline">
+                    <input type="hidden" name="action" value="submit">
+                    <button type="submit" class="btn btn-xs btn-outline-warning mr-1" title="Submit">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </form>
+                  <form action="/timesheet/<%= entry._id %>?_method=DELETE" method="POST" class="d-inline"
+                    onsubmit="return confirm('Delete this entry?')">
+                    <button type="submit" class="btn btn-xs btn-outline-danger" title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                  <% } %>
+                  <% if (entry.isLocked) { %>
+                    <span class="badge badge-secondary"><i class="fas fa-lock"></i> Locked</span>
+                  <% } %>
+                </td>
+              </tr>
+              <% }) %>
+            <% } %>
+          <% }) %>
+        </tbody>
+        <tfoot class="thead-light">
+          <tr>
+            <td colspan="3" class="text-right font-weight-bold">Weekly Total</td>
+            <td class="font-weight-bold text-primary"><%= totalHours %> hrs</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<style>
+.btn-xs { padding: .15rem .4rem; font-size: .75rem; line-height: 1.5; border-radius: .2rem; }
+</style>

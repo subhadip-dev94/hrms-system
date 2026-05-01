@@ -1,0 +1,214 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800"><%= job.jobCode %> — <%= job.title %></h1>
+  <div>
+    <% if (['admin','hr'].includes(user.role)) { %>
+      <a href="/recruitment/<%= job._id %>/edit" class="btn btn-warning btn-sm">Edit</a>
+    <% } %>
+    <a href="/recruitment" class="btn btn-secondary btn-sm ml-1">Back</a>
+  </div>
+</div>
+
+<!-- Job Info -->
+<div class="row mb-4">
+  <div class="col-xl-8">
+    <div class="card shadow">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Job Details</h6>
+        <% const statusMap = { draft: 'secondary', open: 'success', 'on-hold': 'warning', closed: 'danger' }; %>
+        <span class="badge badge-<%= statusMap[job.status] || 'secondary' %> badge-pill"><%= job.status %></span>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Department:</strong> <%= job.departmentId ? job.departmentId.name : '—' %></p>
+            <p><strong>Type:</strong> <span class="badge badge-info"><%= job.jobType %></span></p>
+            <p><strong>Experience:</strong> <%= job.experienceMin %>–<%= job.experienceMax %> yrs</p>
+            <p><strong>Location:</strong> <%= job.location || '—' %></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Positions:</strong> <%= job.filledPositions || 0 %> / <%= job.totalPositions %> filled</p>
+            <% if (job.salaryMin || job.salaryMax) { %>
+              <p><strong>Salary:</strong> ₹<%= (job.salaryMin || 0).toLocaleString('en-IN') %> – ₹<%= (job.salaryMax || 0).toLocaleString('en-IN') %></p>
+            <% } %>
+            <p><strong>Deadline:</strong> <%= job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString('en-IN') : '—' %></p>
+            <p><strong>Created By:</strong> <%= job.createdBy ? `${job.createdBy.firstName} ${job.createdBy.lastName}` : '—' %></p>
+          </div>
+        </div>
+
+        <hr>
+        <h6 class="font-weight-bold">Description</h6>
+        <p class="white-space-pre-line"><%= job.description %></p>
+
+        <% if (job.requirements) { %>
+          <h6 class="font-weight-bold">Requirements</h6>
+          <p class="white-space-pre-line"><%= job.requirements %></p>
+        <% } %>
+
+        <% if (['admin','hr'].includes(user.role)) { %>
+          <hr>
+          <h6 class="font-weight-bold">Update Status</h6>
+          <form method="POST" action="/recruitment/<%= job._id %>/status?_method=PUT" class="form-inline">
+            <select name="status" class="form-control form-control-sm mr-2">
+              <% ['draft','open','on-hold','closed'].forEach(s => { %>
+                <option value="<%= s %>" <%= job.status === s ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-4">
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Pipeline Summary</h6>
+      </div>
+      <div class="card-body">
+        <% const stageCounts = {}; candidates.forEach(c => { stageCounts[c.stage] = (stageCounts[c.stage] || 0) + 1; }); %>
+        <% stages.forEach(s => { %>
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-capitalize"><%= s %></span>
+            <span class="badge badge-primary badge-pill"><%= stageCounts[s] || 0 %></span>
+          </div>
+        <% }) %>
+        <hr>
+        <strong>Total: <%= candidates.length %></strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Candidate Form -->
+<% if (['admin','hr','manager'].includes(user.role) && job.status === 'open') { %>
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Add Candidate</h6>
+  </div>
+  <div class="card-body">
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+        </ul>
+      </div>
+    <% } %>
+    <form method="POST" action="/recruitment/<%= job._id %>/candidate" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>First Name <span class="text-danger">*</span></label>
+            <input type="text" name="firstName" class="form-control" required
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.firstName || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Last Name <span class="text-danger">*</span></label>
+            <input type="text" name="lastName" class="form-control" required
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.lastName || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Email <span class="text-danger">*</span></label>
+            <input type="email" name="email" class="form-control" required
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.email || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Phone <span class="text-danger">*</span></label>
+            <input type="text" name="phone" class="form-control" required
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.phone || '' : '' %>">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Experience (yrs)</label>
+            <input type="number" name="totalExperience" class="form-control" min="0" step="0.5"
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.totalExperience || 0 : 0 %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Current Company</label>
+            <input type="text" name="currentCompany" class="form-control"
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.currentCompany || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Notice (days)</label>
+            <input type="number" name="noticePeriod" class="form-control" min="0"
+              value="<%= typeof oldCandidate !== 'undefined' ? oldCandidate.noticePeriod || 0 : 0 %>">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Source</label>
+            <select name="source" class="form-control">
+              <% ['direct','referral','linkedin','job-portal','campus','other'].forEach(s => { %>
+                <option value="<%= s %>" <%= typeof oldCandidate !== 'undefined' && oldCandidate.source === s ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Resume (PDF/DOC, max 5MB)</label>
+            <input type="file" name="resume" class="form-control-file" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success btn-sm">Add Candidate</button>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<!-- Candidates Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Candidates (<%= candidates.length %>)</h6>
+  </div>
+  <div class="card-body">
+    <% if (candidates.length === 0) { %>
+      <p class="text-center text-muted">No candidates yet.</p>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead class="thead-light">
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Experience</th>
+              <th>Source</th>
+              <th>Stage</th>
+              <th>Applied</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% candidates.forEach(c => { %>
+              <tr>
+                <td><%= c.firstName %> <%= c.lastName %></td>
+                <td><%= c.email %></td>
+                <td><%= c.totalExperience %> yrs</td>
+                <td><%= c.source %></td>
+                <td><span class="badge badge-primary"><%= c.stage %></span></td>
+                <td><%= new Date(c.createdAt).toLocaleDateString('en-IN') %></td>
+                <td><a href="/recruitment/candidate/<%= c._id %>" class="btn btn-info btn-sm">View</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

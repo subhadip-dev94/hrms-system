@@ -1,0 +1,149 @@
+
+
+<%
+  const statusColor = {
+    draft: 'secondary', submitted: 'warning', manager_approved: 'info',
+    approved: 'primary', rejected: 'danger', paid: 'success'
+  };
+%>
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800"><%= expense.expenseCode %> — <%= expense.title %></h1>
+  <div>
+    <% if (expense.status === 'draft' && String(expense.employeeId._id || expense.employeeId) === String(user.employeeId)) { %>
+      <a href="/expense/<%= expense._id %>/edit" class="btn btn-warning btn-sm">Edit</a>
+      <form method="POST" action="/expense/<%= expense._id %>/submit" class="d-inline">
+        <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Submit this expense for approval?')">Submit</button>
+      </form>
+    <% } %>
+    <a href="/expense" class="btn btn-secondary btn-sm ml-1">Back</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xl-7">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Expense Details</h6>
+        <span class="badge badge-<%= statusColor[expense.status] || 'secondary' %> badge-pill"><%= expense.status %></span>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Employee:</strong>
+              <% if (expense.employeeId && expense.employeeId.firstName) { %>
+                <%= expense.employeeId.firstName %> <%= expense.employeeId.lastName %>
+              <% } else { %>—<% } %>
+            </p>
+            <p><strong>Category:</strong> <span class="badge badge-info"><%= expense.category %></span></p>
+            <p><strong>Amount:</strong> <strong>₹<%= expense.amount.toLocaleString('en-IN') %></strong></p>
+            <p><strong>Date:</strong> <%= new Date(expense.expenseDate).toLocaleDateString('en-IN') %></p>
+          </div>
+          <div class="col-md-6">
+            <% if (expense.paidAt) { %>
+              <p><strong>Paid On:</strong> <%= new Date(expense.paidAt).toLocaleDateString('en-IN') %></p>
+              <p><strong>Payment Mode:</strong> <%= expense.paymentMode %></p>
+            <% } %>
+            <% if (expense.receiptUrl) { %>
+              <p><strong>Receipt:</strong> <a href="<%= expense.receiptUrl %>" target="_blank">View Receipt</a></p>
+            <% } else { %>
+              <p><strong>Receipt:</strong> <span class="text-muted">None</span></p>
+            <% } %>
+          </div>
+        </div>
+        <% if (expense.description) { %>
+          <hr>
+          <p><strong>Description:</strong> <%= expense.description %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Approval Trail -->
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Approval Trail</h6>
+      </div>
+      <div class="card-body">
+        <% if (expense.managerAction && expense.managerAction.actionBy) { %>
+          <div class="mb-2">
+            <strong>Manager Action:</strong>
+            <%= expense.managerAction.actionBy.firstName %> <%= expense.managerAction.actionBy.lastName %>
+            on <%= new Date(expense.managerAction.actionAt).toLocaleDateString('en-IN') %>
+            <% if (expense.managerAction.comment) { %>
+              <br><small class="text-muted">"<%= expense.managerAction.comment %>"</small>
+            <% } %>
+          </div>
+        <% } %>
+        <% if (expense.financeAction && expense.financeAction.actionBy) { %>
+          <div class="mb-2">
+            <strong>Finance/Admin Action:</strong>
+            <%= expense.financeAction.actionBy.firstName %> <%= expense.financeAction.actionBy.lastName %>
+            on <%= new Date(expense.financeAction.actionAt).toLocaleDateString('en-IN') %>
+            <% if (expense.financeAction.comment) { %>
+              <br><small class="text-muted">"<%= expense.financeAction.comment %>"</small>
+            <% } %>
+          </div>
+        <% } %>
+        <% if (!expense.managerAction?.actionBy && !expense.financeAction?.actionBy) { %>
+          <p class="text-muted mb-0">No actions yet.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Panel -->
+  <div class="col-xl-5">
+    <!-- Approve / Reject -->
+    <% const canApprove = ['admin','hr','finance','manager'].includes(user.role) &&
+       ['submitted','manager_approved'].includes(expense.status); %>
+    <% if (canApprove) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">Approval Action</h6>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Comment (optional)</label>
+          <textarea id="approvalComment" class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+        <form method="POST" action="/expense/<%= expense._id %>/approve" class="d-inline" id="approveForm">
+          <input type="hidden" name="comment" id="approveComment">
+          <button type="submit" class="btn btn-success btn-sm"
+            onclick="document.getElementById('approveComment').value = document.getElementById('approvalComment').value">
+            Approve
+          </button>
+        </form>
+        <form method="POST" action="/expense/<%= expense._id %>/reject" class="d-inline" id="rejectForm">
+          <input type="hidden" name="comment" id="rejectComment">
+          <button type="submit" class="btn btn-danger btn-sm ml-2"
+            onclick="document.getElementById('rejectComment').value = document.getElementById('approvalComment').value; return confirm('Reject this expense?')">
+            Reject
+          </button>
+        </form>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Mark as Paid -->
+    <% if (['admin','finance'].includes(user.role) && expense.status === 'approved') { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Mark as Paid</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/expense/<%= expense._id %>/pay">
+          <div class="form-group">
+            <label>Payment Mode</label>
+            <select name="paymentMode" class="form-control form-control-sm">
+              <option value="bank-transfer">Bank Transfer</option>
+              <option value="cash">Cash</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-success btn-sm">Mark Paid</button>
+        </form>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</div>

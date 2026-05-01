@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title><%= typeof title !== 'undefined' ? title + ' | HRMS' : 'HRMS' %></title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <!-- Google Fonts: Nunito -->
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900&display=swap" rel="stylesheet" />
+  <!-- Bootstrap 4 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+  <!-- SB Admin 2 -->
+  <link rel="stylesheet" href="https://unpkg.com/startbootstrap-sb-admin-2@4.0.7/css/sb-admin-2.min.css" />
+  <!-- DataTables Bootstrap 4 -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap4.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css" />
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════════════
+       COMPACT SIDEBAR
+    ═══════════════════════════════════════════════════════════════════════ */
+    #accordionSidebar {
+      overflow-y: auto;
+      display: flex !important;
+      flex-direction: column;
+    }
+    #accordionSidebar::-webkit-scrollbar { width: 3px; }
+    #accordionSidebar::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+    }
+    .sidebar .sidebar-brand { height: 3.5rem; }
+    .sidebar .sidebar-brand-text { font-size: 1rem; font-weight: 800; letter-spacing: .04em; }
+    .sidebar .nav-item .nav-link {
+      display: flex !important;
+      align-items: center;
+      padding: 0.55rem 2rem 0.55rem 1rem;  /* right padding reserves room for chevron */
+      font-size: 0.8rem;
+      position: relative;
+    }
+    #accordionSidebar .nav-item .nav-link i.fa-fw {
+      display: inline-block !important;
+      visibility: visible !important;
+      margin-right: 0.45rem;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.8);
+    }
+    .sidebar .nav-item .nav-link i,
+    .sidebar .nav-item .nav-link span { font-size: 0.8rem; }
+    hr.sidebar-divider { margin: 0.2rem 1rem; }
+
+    .collapse-inner {
+      border-radius: 0.35rem;
+      padding: 0.25rem 0 !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .collapse-inner .collapse-item {
+      padding: 0.35rem 1.1rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #4e73df;
+    }
+    .collapse-inner .collapse-item:hover  { background: #eaecf4; color: #2e59d9; }
+    .collapse-inner .collapse-item.active { background: #eaecf4; color: #2e59d9; font-weight: 700; }
+
+    /* Chevron — absolutely pinned to right edge of nav-link */
+    .sidebar .nav-link[data-toggle="collapse"]::after {
+      content: '\f107';
+      font-family: 'Font Awesome 5 Free';
+      font-weight: 900;
+      position: absolute;
+      right: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      transition: transform 0.22s ease;
+      opacity: 0.85;
+      color: rgba(255,255,255,0.85);
+    }
+    .sidebar .nav-link[data-toggle="collapse"]:not(.collapsed)::after {
+      transform: translateY(-50%) rotate(-180deg);
+    }
+    /* ── Sticky sidebar on desktop ───────────────────────────────────────── */
+    @media (min-width: 768px) {
+      #wrapper { align-items: flex-start; }
+      .sidebar {
+        position: sticky !important;
+        top: 0;
+        height: 100vh;
+        flex-shrink: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      /* Always keep sidebar fully expanded — never icon-only */
+      body.sidebar-toggled .sidebar { width: 14rem !important; overflow: auto !important; }
+      body.sidebar-toggled .sidebar .nav-item .nav-link span { display: inline !important; }
+      body.sidebar-toggled .sidebar .sidebar-brand-text { display: inline !important; }
+    }
+
+    /* Compact topbar */
+    .navbar { padding: 0.4rem 1rem; }
+    .container-fluid { padding-top: 1rem; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       MOBILE SIDEBAR OVERLAY
+    ═══════════════════════════════════════════════════════════════════════ */
+    #sidebarOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.45);
+      z-index: 1029;
+    }
+    #sidebarOverlay.active { display: block; }
+
+    @media (max-width: 767.98px) {
+      /* ── Slide-in drawer ─────────────────────────────────────────────── */
+      .sidebar {
+        position: fixed !important;
+        top: 0; left: 0;
+        height: 100vh !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        transition: width 0.28s cubic-bezier(.4,0,.2,1) !important;
+        z-index: 1030 !important;
+      }
+      body.sidebar-toggled .sidebar {
+        width: 270px !important;
+        overflow-y: auto !important;
+      }
+      body.sidebar-toggled #content-wrapper { margin-left: 0 !important; }
+
+      /* ── Nav links: ID selector beats any SB Admin 2 class rule ────────── */
+      #accordionSidebar .nav-item .nav-link {
+        display: flex !important;
+        align-items: center !important;
+        text-align: left !important;
+        padding: 0.72rem 2.4rem 0.72rem 1rem !important;
+        position: relative !important;
+        white-space: nowrap !important;
+      }
+
+      /* ── Icons: force visible, sized, coloured ───────────────────────── */
+      #accordionSidebar .nav-item .nav-link i,
+      #accordionSidebar .nav-item .nav-link i.fa-fw {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: rgba(255,255,255,0.85) !important;
+        font-size: 0.95rem !important;
+        width: 1.25em !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+        margin-right: 0.65rem !important;
+      }
+
+      /* ── Span text ───────────────────────────────────────────────────── */
+      #accordionSidebar .nav-item .nav-link span {
+        display: inline !important;
+        visibility: visible !important;
+        color: rgba(255,255,255,0.8) !important;
+        font-size: 0.83rem !important;
+      }
+
+      /* ── Sidebar brand ───────────────────────────────────────────────── */
+      #accordionSidebar .sidebar-brand-text { display: inline !important; font-size: 1rem !important; }
+
+      /* ── Collapse submenus: fully inline, no truncation ─────────────── */
+      #accordionSidebar .nav-item .collapse,
+      #accordionSidebar .nav-item .collapsing {
+        position: static !important;
+        left: auto !important; top: auto !important;
+        z-index: auto !important;
+        animation: none !important;
+        width: auto !important;
+      }
+      #accordionSidebar .collapse-inner {
+        margin: 0 0.6rem 0.25rem !important;
+        border-radius: 0.4rem !important;
+      }
+      #accordionSidebar .collapse-inner .collapse-item {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        padding: 0.5rem 1.1rem !important;
+        font-size: 0.82rem !important;
+        display: block !important;
+      }
+
+      /* ── Expand/collapse chevron: large & visible on mobile ─────────── */
+      #accordionSidebar .nav-link[data-toggle="collapse"]::after {
+        font-size: 0.85rem !important;
+        opacity: 1 !important;
+        color: rgba(255,255,255,0.9) !important;
+        right: -0rem !important;
+        left: 10rem;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+      }
+      #accordionSidebar .nav-link[data-toggle="collapse"]:not(.collapsed)::after {
+        transform: translateY(-50%) rotate(-180deg) !important;
+      }
+
+      /* ── Dividers ────────────────────────────────────────────────────── */
+      hr.sidebar-divider { margin: 0.3rem 0.8rem !important; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       THEME SWATCHES UI
+    ═══════════════════════════════════════════════════════════════════════ */
+    .theme-swatch {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 3px solid transparent !important;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+    .theme-swatch:hover  { transform: scale(1.15); box-shadow: 0 0 0 3px rgba(0,0,0,0.15); }
+    .theme-swatch.active { border-color: #fff !important; box-shadow: 0 0 0 3px rgba(0,0,0,0.25); transform: scale(1.1); }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       THEME: DARK (Midnight)
+    ═══════════════════════════════════════════════════════════════════════ */
+    [data-theme="dark"] .bg-gradient-primary {
+      background-color: #2c3e50 !important;
+      background-image: linear-gradient(180deg, #34495e 10%, #1a252f 100%) !important;
+    }
+    [data-theme="dark"] .text-primary                   { color: #34495e !important; }
+    [data-theme="dark"] .btn-primary                    { background-color: #2c3e50 !important; border-color: #1a252f !important; }
+    [data-theme="dark"] .btn-primary:hover              { background-color: #1a252f !important; border-color: #0f1923 !important; }
+    [data-theme="dark"] .badge-primary                  { background-color: #2c3e50 !important; }
+    [data-theme="dark"] .border-left-primary            { border-left-color: #2c3e50 !important; }
+    [data-theme="dark"] .collapse-inner .collapse-item  { color: #2c3e50; }
+    [data-theme="dark"] .collapse-inner .collapse-item:hover,
+    [data-theme="dark"] .collapse-inner .collapse-item.active { background: #e4e8ed; color: #1a252f; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       THEME: RED (Crimson)
+    ═══════════════════════════════════════════════════════════════════════ */
+    [data-theme="red"] .bg-gradient-primary {
+      background-color: #c0392b !important;
+      background-image: linear-gradient(180deg, #e74c3c 10%, #c0392b 100%) !important;
+    }
+    [data-theme="red"] .text-primary                   { color: #c0392b !important; }
+    [data-theme="red"] .btn-primary                    { background-color: #c0392b !important; border-color: #a93226 !important; }
+    [data-theme="red"] .btn-primary:hover              { background-color: #a93226 !important; border-color: #922b21 !important; }
+    [data-theme="red"] .badge-primary                  { background-color: #c0392b !important; }
+    [data-theme="red"] .border-left-primary            { border-left-color: #c0392b !important; }
+    [data-theme="red"] .collapse-inner .collapse-item  { color: #c0392b; }
+    [data-theme="red"] .collapse-inner .collapse-item:hover,
+    [data-theme="red"] .collapse-inner .collapse-item.active { background: #fdf0ee; color: #922b21; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       THEME: PURPLE (Royal)
+    ═══════════════════════════════════════════════════════════════════════ */
+    [data-theme="purple"] .bg-gradient-primary {
+      background-color: #6f42c1 !important;
+      background-image: linear-gradient(180deg, #8a63d2 10%, #5a32a3 100%) !important;
+    }
+    [data-theme="purple"] .text-primary                   { color: #6f42c1 !important; }
+    [data-theme="purple"] .btn-primary                    { background-color: #6f42c1 !important; border-color: #5a32a3 !important; }
+    [data-theme="purple"] .btn-primary:hover              { background-color: #5a32a3 !important; border-color: #4a2889 !important; }
+    [data-theme="purple"] .badge-primary                  { background-color: #6f42c1 !important; }
+    [data-theme="purple"] .border-left-primary            { border-left-color: #6f42c1 !important; }
+    [data-theme="purple"] .collapse-inner .collapse-item  { color: #6f42c1; }
+    [data-theme="purple"] .collapse-inner .collapse-item:hover,
+    [data-theme="purple"] .collapse-inner .collapse-item.active { background: #f3eeff; color: #4a2889; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       THEME: TEAL (Emerald)
+    ═══════════════════════════════════════════════════════════════════════ */
+    [data-theme="teal"] .bg-gradient-primary {
+      background-color: #13855c !important;
+      background-image: linear-gradient(180deg, #1cc88a 10%, #13855c 100%) !important;
+    }
+    [data-theme="teal"] .text-primary                   { color: #13855c !important; }
+    [data-theme="teal"] .btn-primary                    { background-color: #1cc88a !important; border-color: #17a673 !important; }
+    [data-theme="teal"] .btn-primary:hover              { background-color: #17a673 !important; border-color: #13855c !important; }
+    [data-theme="teal"] .badge-primary                  { background-color: #1cc88a !important; }
+    [data-theme="teal"] .border-left-primary            { border-left-color: #1cc88a !important; }
+    [data-theme="teal"] .collapse-inner .collapse-item  { color: #0e6b4a; }
+    [data-theme="teal"] .collapse-inner .collapse-item:hover,
+    [data-theme="teal"] .collapse-inner .collapse-item.active { background: #eafaf4; color: #0a5238; }
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       THEME: BLACK (Obsidian)
+    ═══════════════════════════════════════════════════════════════════════ */
+    [data-theme="black"] .bg-gradient-primary {
+      background-color: #000000 !important;
+      background-image: linear-gradient(180deg, #2d2d2d 10%, #000000 100%) !important;
+    }
+    [data-theme="black"] .text-primary                   { color: #212529 !important; }
+    [data-theme="black"] .btn-primary                    { background-color: #212529 !important; border-color: #000000 !important; }
+    [data-theme="black"] .btn-primary:hover              { background-color: #000000 !important; border-color: #000000 !important; }
+    [data-theme="black"] .badge-primary                  { background-color: #212529 !important; }
+    [data-theme="black"] .border-left-primary            { border-left-color: #212529 !important; }
+    [data-theme="black"] .collapse-inner .collapse-item  { color: #212529; }
+    [data-theme="black"] .collapse-inner .collapse-item:hover,
+    [data-theme="black"] .collapse-inner .collapse-item.active { background: #f0f0f0; color: #000000; font-weight: 700; }
+  </style>
+
+  <!-- Apply saved theme BEFORE render (prevents flash) -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('hrms-theme') || 'black';
+      if (t !== 'blue') document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+
+  <%- typeof style !== 'undefined' ? style : '' %>
+</head>
+
+<body id="page-top">
+
+  <!-- ═══ Page Wrapper ══════════════════════════════════════════════════════ -->
+  <div id="wrapper">
+
+    <%- include('partials/sidebar') %>
+
+    <!-- ═══ Content Wrapper ════════════════════════════════════════════════ -->
+    <div id="content-wrapper" class="d-flex flex-column">
+      <div id="content">
+
+        <%- include('partials/navbar') %>
+
+        <!-- ═══ Page Content ══════════════════════════════════════════════ -->
+        <div class="container-fluid pb-4">
+
+          <% if (success) { %>
+          <div class="alert alert-success alert-dismissible fade show shadow-sm mt-3" role="alert">
+            <i class="fas fa-check-circle mr-2"></i><%= success %>
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+          </div>
+          <% } %>
+
+          <% if (error) { %>
+          <div class="alert alert-danger alert-dismissible fade show shadow-sm mt-3" role="alert">
+            <i class="fas fa-exclamation-circle mr-2"></i><%= error %>
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+          </div>
+          <% } %>
+
+          <%- body %>
+
+        </div>
+
+      </div>
+
+      <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+          <div class="copyright text-center my-auto">
+            <span>Copyright &copy; HRMS &nbsp;<%= new Date().getFullYear() %></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+  </div>
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebarOverlay"></div>
+
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SB Admin 2 -->
+  <script src="https://unpkg.com/startbootstrap-sb-admin-2@4.0.7/js/sb-admin-2.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- DataTables Bootstrap 4 -->
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap4.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+
+  <script>
+    /* ── Theme Manager ───────────────────────────────────────────────────── */
+    function setTheme(theme) {
+      if (theme === 'blue') {
+        document.body.removeAttribute('data-theme');
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.body.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+      localStorage.setItem('hrms-theme', theme);
+      document.querySelectorAll('.theme-swatch').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.theme === theme);
+      });
+      // Close the dropdown
+      $('#themeDropdown').dropdown('hide');
+    }
+
+    // Apply theme on load + mark active swatch
+    $(function() {
+      var saved = localStorage.getItem('hrms-theme') || 'black';
+      if (saved !== 'blue') {
+        document.body.setAttribute('data-theme', saved);
+      }
+      document.querySelectorAll('.theme-swatch').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.theme === saved);
+      });
+    });
+
+    /* ── Mobile Sidebar ──────────────────────────────────────────────────── */
+    $(function() {
+      var $overlay = $('#sidebarOverlay');
+      var $body    = $('body');
+      var $sidebar = $('.sidebar');
+
+      function openMobileSidebar() {
+        $body.addClass('sidebar-toggled');
+        // Do NOT add .toggled to .sidebar — that triggers SB Admin 2's
+        // absolute-positioned flyout mode which breaks inline collapse menus
+        $overlay.addClass('active');
+      }
+      function closeMobileSidebar() {
+        $body.removeClass('sidebar-toggled');
+        $sidebar.removeClass('toggled'); // clean up if SB Admin 2 JS added it
+        $overlay.removeClass('active');
+      }
+
+      // Fully intercept the hamburger click on mobile (prevent SB Admin 2 from running it)
+      $('#sidebarToggleTop').off('click').on('click', function(e) {
+        e.stopImmediatePropagation();
+        if ($(window).width() < 768) {
+          if ($body.hasClass('sidebar-toggled')) {
+            closeMobileSidebar();
+          } else {
+            openMobileSidebar();
+          }
+        }
+      });
+
+      // Close sidebar when overlay tapped
+      $overlay.on('click', function() {
+        closeMobileSidebar();
+      });
+
+      // Close sidebar when a real nav link (not a collapse toggle) is clicked on mobile
+      $(document).on('click', '.sidebar .collapse-item', function() {
+        if ($(window).width() < 768) {
+          closeMobileSidebar();
+        }
+      });
+      // Also close for single-link nav items (Dashboard, My Payslips)
+      $(document).on('click', '.sidebar .nav-link:not([data-toggle="collapse"])', function() {
+        if ($(window).width() < 768) {
+          closeMobileSidebar();
+        }
+      });
+    });
+  </script>
+
+  <script>
+    /* ── DataTables: init all .table-datatable tables ────────────────────── */
+    $(function () {
+      $('.table-datatable').each(function () {
+        if ($.fn.DataTable.isDataTable(this)) return;
+        $(this).DataTable({
+          pageLength: 10,
+          lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+          responsive: true,
+          language: {
+            paginate: {
+              previous: '<i class="fas fa-chevron-left fa-xs"></i>',
+              next:     '<i class="fas fa-chevron-right fa-xs"></i>'
+            },
+            search:      '',
+            searchPlaceholder: 'Quick search…',
+            lengthMenu:  'Show _MENU_',
+            info:        '_START_–_END_ of _TOTAL_',
+            infoEmpty:   '0 entries',
+            zeroRecords: 'No matching records',
+            emptyTable:  'No data available'
+          },
+          dom: '<"row align-items-center mb-2"<"col-auto"l><"col"f>>t<"row align-items-center mt-2"<"col-sm-5"i><"col-sm-7"p>>'
+        });
+      });
+    });
+  </script>
+
+  <%- typeof script !== 'undefined' ? script : '' %>
+
+  <% if (currentUser) { %>
+  <!-- ── Socket.io real-time layer ─────────────────────────────────────────── -->
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    #toastContainer { position:fixed; top:72px; right:16px; z-index:9999; width:320px; pointer-events:none; }
+    #toastContainer .hrms-toast {
+      pointer-events:all;
+      display:flex; align-items:flex-start; gap:10px;
+      padding:12px 14px; border-radius:8px; margin-bottom:8px;
+      box-shadow:0 4px 16px rgba(0,0,0,.18);
+      animation:toastIn .3s ease; color:#fff; font-size:.83rem; line-height:1.4;
+    }
+    #toastContainer .hrms-toast.t-info    { background:#4e73df; }
+    #toastContainer .hrms-toast.t-success { background:#1cc88a; }
+    #toastContainer .hrms-toast.t-warning { background:#f6c23e; color:#333; }
+    #toastContainer .hrms-toast.t-danger  { background:#e74a3b; }
+    #toastContainer .hrms-toast .t-icon   { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+    #toastContainer .hrms-toast .t-close  {
+      margin-left:auto; flex-shrink:0; background:none; border:none;
+      color:inherit; opacity:.7; cursor:pointer; font-size:1rem; padding:0;
+    }
+    @keyframes toastIn { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:none; } }
+  </style>
+  <div id="toastContainer"></div>
+
+  <script>
+    (function () {
+      // ── Toast helper ──────────────────────────────────────────────────────
+      var icons = { info:'fas fa-bullhorn', success:'fas fa-check-circle', warning:'fas fa-exclamation-triangle', danger:'fas fa-times-circle' };
+      function showToast(message, type, link) {
+        type = type || 'info';
+        var id  = 'toast_' + Date.now();
+        var el  = document.createElement('div');
+        el.id   = id;
+        el.className = 'hrms-toast t-' + type;
+        if (link) { el.style.cursor = 'pointer'; el.addEventListener('click', function() { window.location = link; }); }
+        el.innerHTML =
+          '<span class="t-icon"><i class="' + (icons[type] || icons.info) + '"></i></span>' +
+          '<span class="flex-grow-1">' + message + '</span>' +
+          '<button class="t-close" onclick="event.stopPropagation();this.closest(\'.hrms-toast\').remove();">&times;</button>';
+        document.getElementById('toastContainer').appendChild(el);
+        setTimeout(function() { if (document.getElementById(id)) document.getElementById(id).remove(); }, 6000);
+      }
+
+      // ── Badge helper ─────────────────────────────────────────────────────
+      function updateBadge(id, delta) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var cur = parseInt(el.textContent, 10) || 0;
+        var next = Math.max(0, cur + delta);
+        el.textContent = next > 9 ? '9+' : next;
+        el.style.display = next > 0 ? 'inline-block' : 'none';
+      }
+
+      // ── Socket connection (WebSocket only — no long-poll) ─────────────────
+      var socket = io({ transports: ['websocket'] });
+
+      socket.on('connect_error', function() {
+        // Silent — sockets are an enhancement; page still works without them
+      });
+
+      // New announcement posted → increment bell badge + toast
+      socket.on('announcement:new', function(data) {
+        updateBadge('announcementBadge', 1);
+        showToast('<strong>New announcement:</strong> ' + data.title, 'info', '/announcements');
+      });
+
+      // Leave status changed → toast for the affected employee
+      socket.on('leave:update', function(data) {
+        var type = data.status === 'approved' ? 'success' : data.status === 'rejected' ? 'danger' : 'warning';
+        showToast(data.message, type, '/leaves/my');
+      });
+
+      // New leave request submitted → toast + badge for managers/HR
+      socket.on('leave:newRequest', function(data) {
+        updateBadge('pendingLeaveBadge', 1);
+        showToast(data.message, 'warning', '/leaves/approvals');
+      });
+
+      // Manager approved, HR action needed → toast for HR/admin
+      socket.on('leave:pendingAction', function(data) {
+        updateBadge('pendingLeaveBadge', 1);
+        showToast(data.message, 'info', '/leaves/approvals');
+      });
+    })();
+  </script>
+  <% } %>
+
+</body>
+</html>

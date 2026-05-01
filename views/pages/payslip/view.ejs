@@ -1,0 +1,199 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-receipt mr-2 text-primary"></i>
+    Payslip — <%= getMonthName(payslip.month) %> <%= payslip.year %>
+  </h1>
+  <div>
+    <% if (payslip.pdfPath) { %>
+    <a href="/payslips/<%= payslip._id %>/download" class="btn btn-success btn-sm shadow-sm mr-2">
+      <i class="fas fa-download mr-1"></i> Download PDF
+    </a>
+    <% } %>
+    <% if (currentUser && ['admin','hr','finance'].includes(currentUser.role)) { %>
+    <form action="/payslips/<%= payslip._id %>/email" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-info btn-sm shadow-sm mr-2">
+        <i class="fas fa-envelope mr-1"></i> Email to Employee
+      </button>
+    </form>
+    <% } %>
+    <a href="/payslips/my" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<!-- Payslip Card -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 bg-gradient-primary text-white">
+    <div class="row align-items-center">
+      <div class="col">
+        <h5 class="mb-0 font-weight-bold">
+          <%= payslip.employeeId ? payslip.employeeId.firstName + ' ' + payslip.employeeId.lastName : '—' %>
+        </h5>
+        <small>
+          <%= payslip.employeeId ? payslip.employeeId.employeeCode : '' %> &nbsp;·&nbsp;
+          <%= payslip.employeeId ? payslip.employeeId.designation : '' %>
+        </small>
+      </div>
+      <div class="col-auto text-right">
+        <div class="font-weight-bold"><%= getMonthName(payslip.month) %> <%= payslip.year %></div>
+        <small>Pay Period</small>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+
+    <!-- Attendance Summary -->
+    <h6 class="font-weight-bold text-secondary mb-3">
+      <i class="fas fa-calendar-check mr-1"></i> Attendance Summary
+    </h6>
+    <div class="row text-center mb-4">
+      <div class="col">
+        <div class="h5 mb-0 font-weight-bold"><%= payslip.attendance.workingDays %></div>
+        <div class="text-xs text-muted">Working Days</div>
+      </div>
+      <div class="col">
+        <div class="h5 mb-0 font-weight-bold text-success"><%= payslip.attendance.presentDays %></div>
+        <div class="text-xs text-muted">Present</div>
+      </div>
+      <div class="col">
+        <div class="h5 mb-0 font-weight-bold text-danger"><%= payslip.attendance.absentDays %></div>
+        <div class="text-xs text-muted">Absent</div>
+      </div>
+      <div class="col">
+        <div class="h5 mb-0 font-weight-bold text-warning"><%= payslip.attendance.leaveDays %></div>
+        <div class="text-xs text-muted">On Leave</div>
+      </div>
+      <div class="col">
+        <div class="h5 mb-0 font-weight-bold text-info"><%= payslip.attendance.overtimeHours %></div>
+        <div class="text-xs text-muted">OT Hours</div>
+      </div>
+      <div class="col">
+        <div class="h5 mb-0 font-weight-bold text-secondary"><%= payslip.attendance.holidays %></div>
+        <div class="text-xs text-muted">Holidays</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Earnings -->
+      <div class="col-md-6">
+        <h6 class="font-weight-bold text-success mb-2">
+          <i class="fas fa-plus-circle mr-1"></i> Earnings
+        </h6>
+        <table class="table table-sm table-borderless">
+          <tbody>
+            <tr>
+              <td>Basic Salary</td>
+              <td class="text-right">₹ <%= payslip.earnings.basicSalary.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <tr>
+              <td>HRA (40%)</td>
+              <td class="text-right">₹ <%= payslip.earnings.hra.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% if (payslip.earnings.specialAllowance > 0) { %>
+            <tr>
+              <td>Special Allowance</td>
+              <td class="text-right">₹ <%= payslip.earnings.specialAllowance.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <% if (payslip.earnings.transportAllowance > 0) { %>
+            <tr>
+              <td>Transport Allowance</td>
+              <td class="text-right">₹ <%= payslip.earnings.transportAllowance.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <% if (payslip.earnings.medicalAllowance > 0) { %>
+            <tr>
+              <td>Medical Allowance</td>
+              <td class="text-right">₹ <%= payslip.earnings.medicalAllowance.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <% if (payslip.earnings.otherAllowances > 0) { %>
+            <tr>
+              <td>Other Allowances</td>
+              <td class="text-right">₹ <%= payslip.earnings.otherAllowances.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <% if (payslip.earnings.overtimePay > 0) { %>
+            <tr>
+              <td>Overtime Pay</td>
+              <td class="text-right">₹ <%= payslip.earnings.overtimePay.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <tr class="border-top font-weight-bold text-success">
+              <td>Gross Earnings</td>
+              <td class="text-right">₹ <%= payslip.earnings.grossEarnings.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Deductions -->
+      <div class="col-md-6">
+        <h6 class="font-weight-bold text-danger mb-2">
+          <i class="fas fa-minus-circle mr-1"></i> Deductions
+        </h6>
+        <table class="table table-sm table-borderless">
+          <tbody>
+            <% if (payslip.deductions.absentDeduction > 0) { %>
+            <tr>
+              <td>Absent Deduction</td>
+              <td class="text-right text-danger">₹ <%= payslip.deductions.absentDeduction.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <tr>
+              <td>Provident Fund (12%)</td>
+              <td class="text-right">₹ <%= payslip.deductions.pf.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% if (payslip.deductions.esi > 0) { %>
+            <tr>
+              <td>ESI (0.75%)</td>
+              <td class="text-right">₹ <%= payslip.deductions.esi.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <% if (payslip.deductions.tax > 0) { %>
+            <tr>
+              <td>Income Tax</td>
+              <td class="text-right">₹ <%= payslip.deductions.tax.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <% if (payslip.deductions.otherDeductions > 0) { %>
+            <tr>
+              <td>Other Deductions</td>
+              <td class="text-right">₹ <%= payslip.deductions.otherDeductions.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+            <% } %>
+            <tr class="border-top font-weight-bold text-danger">
+              <td>Total Deductions</td>
+              <td class="text-right">₹ <%= payslip.deductions.totalDeductions.toLocaleString('en-IN', {minimumFractionDigits:2}) %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Net Pay -->
+    <div class="border-top pt-3 mt-2">
+      <div class="row align-items-center">
+        <div class="col">
+          <h4 class="font-weight-bold text-gray-800 mb-0">
+            NET PAY
+          </h4>
+        </div>
+        <div class="col-auto">
+          <h4 class="font-weight-bold text-primary mb-0">
+            ₹ <%= payslip.netPay.toLocaleString('en-IN', {minimumFractionDigits:2}) %>
+          </h4>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="card-footer text-muted small text-center">
+    This is a system-generated payslip and does not require a signature.
+    <% if (payslip.emailedAt) { %>
+    &nbsp;·&nbsp; Emailed on <%= new Date(payslip.emailedAt).toLocaleDateString('en-IN') %>
+    <% } %>
+  </div>
+</div>

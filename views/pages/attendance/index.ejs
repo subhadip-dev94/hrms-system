@@ -1,0 +1,187 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-calendar-check mr-2 text-primary"></i> Attendance — All Employees
+  </h1>
+  <a href="/attendance/report" class="btn btn-info btn-sm shadow-sm">
+    <i class="fas fa-chart-bar fa-sm mr-1"></i> Monthly Report
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter mr-1"></i> Filters</h6>
+  </div>
+  <div class="card-body py-3">
+    <form method="GET" action="/attendance" class="form-row align-items-end">
+      <div class="form-group col-md-3 mb-2">
+        <label class="small font-weight-bold text-gray-600">Employee</label>
+        <select name="employeeId" class="form-control form-control-sm">
+          <option value="">All Employees</option>
+          <% employees.forEach(function(emp) { %>
+            <option value="<%= emp._id %>" <%= filters.employeeId === emp._id.toString() ? 'selected' : '' %>>
+              <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Month</label>
+        <select name="month" class="form-control form-control-sm">
+          <% const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']; %>
+          <% for (let m = 1; m <= 12; m++) { %>
+            <option value="<%= m %>" <%= parseInt(filters.month) === m ? 'selected' : '' %>><%= monthNames[m-1] %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Year</label>
+        <select name="year" class="form-control form-control-sm">
+          <% for (let y = new Date().getFullYear(); y >= new Date().getFullYear() - 2; y--) { %>
+            <option value="<%= y %>" <%= parseInt(filters.year) === y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All</option>
+          <option value="present"  <%= filters.status === 'present'  ? 'selected':'' %>>Present</option>
+          <option value="absent"   <%= filters.status === 'absent'   ? 'selected':'' %>>Absent</option>
+          <option value="late"     <%= filters.status === 'late'     ? 'selected':'' %>>Late</option>
+          <option value="on-leave" <%= filters.status === 'on-leave' ? 'selected':'' %>>On Leave</option>
+          <option value="half-day" <%= filters.status === 'half-day' ? 'selected':'' %>>Half Day</option>
+          <option value="holiday"  <%= filters.status === 'holiday'  ? 'selected':'' %>>Holiday</option>
+        </select>
+      </div>
+      <div class="form-group col-md-3 mb-2 d-flex">
+        <button type="submit" class="btn btn-primary btn-sm mr-1 flex-fill">
+          <i class="fas fa-search mr-1"></i> Filter
+        </button>
+        <a href="/attendance" class="btn btn-secondary btn-sm flex-fill">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Manual Mark Form (HR/Admin) -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between" style="cursor:pointer;"
+       data-toggle="collapse" data-target="#markForm">
+    <h6 class="m-0 font-weight-bold text-warning">
+      <i class="fas fa-user-edit mr-1"></i> Manually Mark Attendance
+    </h6>
+    <i class="fas fa-chevron-down text-muted"></i>
+  </div>
+  <div class="collapse" id="markForm">
+    <div class="card-body">
+      <form action="/attendance/mark" method="POST" class="form-row align-items-end">
+        <div class="form-group col-md-3">
+          <label class="small font-weight-bold text-gray-600">Employee <span class="text-danger">*</span></label>
+          <select name="employeeId" class="form-control form-control-sm" required>
+            <option value="">Select Employee</option>
+            <% employees.forEach(function(emp) { %>
+              <option value="<%= emp._id %>">
+                <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group col-md-2">
+          <label class="small font-weight-bold text-gray-600">Date <span class="text-danger">*</span></label>
+          <input type="date" name="date" class="form-control form-control-sm"
+            value="<%= new Date().toISOString().split('T')[0] %>" required />
+        </div>
+        <div class="form-group col-md-2">
+          <label class="small font-weight-bold text-gray-600">Status <span class="text-danger">*</span></label>
+          <select name="status" class="form-control form-control-sm" required>
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+            <option value="half-day">Half Day</option>
+            <option value="on-leave">On Leave</option>
+            <option value="holiday">Holiday</option>
+          </select>
+        </div>
+        <div class="form-group col-md-3">
+          <label class="small font-weight-bold text-gray-600">Note</label>
+          <input type="text" name="note" class="form-control form-control-sm"
+            placeholder="Optional note..." />
+        </div>
+        <div class="form-group col-md-2">
+          <button type="submit" class="btn btn-warning btn-sm btn-block">
+            <i class="fas fa-save mr-1"></i> Mark
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Records Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">
+      Records <span class="badge badge-primary ml-2"><%= records.length %></span>
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-sm table-datatable" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Hours</th>
+            <th>OT</th>
+            <th>Late</th>
+            <th>Status</th>
+            <th>Marked By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% records.forEach(function(r) { %>
+            <tr>
+              <td class="small">
+                <% if (r.employeeId) { %>
+                  <span class="badge badge-secondary mr-1"><%= r.employeeId.employeeCode %></span>
+                  <%= r.employeeId.firstName %> <%= r.employeeId.lastName %>
+                <% } else { %>—<% } %>
+              </td>
+              <td class="small font-weight-bold">
+                <%= new Date(r.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+              <td class="small">
+                <%= r.checkIn ? new Date(r.checkIn).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) : '—' %>
+              </td>
+              <td class="small">
+                <%= r.checkOut ? new Date(r.checkOut).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) : '—' %>
+              </td>
+              <td class="small"><%= r.workHours ? r.workHours + ' h' : '—' %></td>
+              <td class="small text-info"><%= r.overtime ? r.overtime + ' h' : '—' %></td>
+              <td class="text-center">
+                <% if (r.isLate) { %>
+                  <span class="badge badge-warning">Late</span>
+                <% } else { %>
+                  <span class="text-muted small">—</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (r.status === 'present')  { %><span class="badge badge-success">Present</span>
+                <% } else if (r.status === 'late')    { %><span class="badge badge-warning">Late</span>
+                <% } else if (r.status === 'absent')  { %><span class="badge badge-danger">Absent</span>
+                <% } else if (r.status === 'half-day'){ %><span class="badge badge-info">Half Day</span>
+                <% } else if (r.status === 'on-leave'){ %><span class="badge badge-primary">On Leave</span>
+                <% } else if (r.status === 'holiday') { %><span class="badge badge-secondary">Holiday</span>
+                <% } %>
+              </td>
+              <td class="small text-capitalize text-muted"><%= r.markedBy %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

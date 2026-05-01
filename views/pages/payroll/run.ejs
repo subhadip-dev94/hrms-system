@@ -1,0 +1,65 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-play mr-2 text-primary"></i> Run Payroll
+  </h1>
+  <a href="/payroll" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<% if (locals.errors && errors.length > 0) { %>
+<div class="alert alert-danger">
+  <ul class="mb-0">
+    <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Select Pay Period</h6>
+      </div>
+      <div class="card-body">
+        <form action="/payroll/run" method="POST">
+
+          <div class="form-group">
+            <label>Month <span class="text-danger">*</span></label>
+            <select name="month" class="form-control" required>
+              <% const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']; %>
+              <% for (let m = 1; m <= 12; m++) { %>
+              <option value="<%= m %>" <%= (locals.old ? parseInt(locals.old.month) : defaultMonth) === m ? 'selected' : '' %>>
+                <%= monthNames[m - 1] %>
+              </option>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Year <span class="text-danger">*</span></label>
+            <select name="year" class="form-control" required>
+              <% for (let y = defaultYear - 2; y <= defaultYear; y++) { %>
+              <option value="<%= y %>" <%= (locals.old ? parseInt(locals.old.year) : defaultYear) === y ? 'selected' : '' %>>
+                <%= y %>
+              </option>
+              <% } %>
+            </select>
+          </div>
+
+          <div class="alert alert-warning small">
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            <strong>Important:</strong> Running payroll will generate payslips for all active employees
+            who have a salary structure assigned. This cannot be undone.
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block"
+            onclick="return confirm('Are you sure you want to run payroll for the selected period?')">
+            <i class="fas fa-play mr-1"></i> Run Payroll
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

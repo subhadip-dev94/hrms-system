@@ -1,0 +1,89 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Offboarding</h1>
+  <a href="/offboarding/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus mr-1"></i> Initiate Offboarding
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/offboarding" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% ['initiated','in-progress','completed','cancelled'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>>
+              <%= s.charAt(0).toUpperCase() + s.slice(1) %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Exit Type</label>
+        <select name="exitType" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% exitTypes.forEach(t => { %>
+            <option value="<%= t %>" <%= filters.exitType === t ? 'selected' : '' %>><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mb-2">Filter</button>
+      <a href="/offboarding" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (offboardings.length === 0) { %>
+      <p class="text-center text-muted mt-3">No offboarding cases found.</p>
+    <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th><th>Exit Type</th><th>Last Working Day</th>
+            <th>Checklist</th><th>Status</th><th>Initiated By</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% offboardings.forEach(ob => { %>
+            <%
+              const statusColor = { initiated: 'warning', 'in-progress': 'info', completed: 'success', cancelled: 'secondary' };
+              const completed = ob.checklist.filter(c => c.isCompleted).length;
+              const total = ob.checklist.length;
+              const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            %>
+            <tr>
+              <td>
+                <% if (ob.employeeId) { %>
+                  <strong><%= ob.employeeId.firstName %> <%= ob.employeeId.lastName %></strong><br>
+                  <small class="text-muted"><%= ob.employeeId.employeeCode %></small>
+                <% } %>
+              </td>
+              <td><span class="badge badge-secondary"><%= ob.exitType %></span></td>
+              <td><%= new Date(ob.lastWorkingDay).toLocaleDateString('en-IN') %></td>
+              <td>
+                <div class="progress mb-1" style="height:8px;">
+                  <div class="progress-bar bg-<%= pct === 100 ? 'success' : 'primary' %>"
+                    style="width:<%= pct %>%"></div>
+                </div>
+                <small><%= completed %>/<%= total %></small>
+              </td>
+              <td><span class="badge badge-<%= statusColor[ob.status] || 'secondary' %>"><%= ob.status %></span></td>
+              <td class="small"><%= ob.initiatedBy ? `${ob.initiatedBy.firstName} ${ob.initiatedBy.lastName}` : '—' %></td>
+              <td>
+                <a href="/offboarding/<%= ob._id %>" class="btn btn-info btn-sm">View</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>

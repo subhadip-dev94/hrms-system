@@ -1,0 +1,166 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-star mr-2 text-primary"></i> Submit Performance Review
+  </h1>
+  <a href="/performance/team" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<% if (locals.errors && errors.length > 0) { %>
+<div class="alert alert-danger">
+  <ul class="mb-0">
+    <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Review Form</h6>
+  </div>
+  <div class="card-body">
+    <form action="/performance/review" method="POST" id="reviewForm">
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Employee <span class="text-danger">*</span></label>
+            <select name="employeeId" class="form-control" required>
+              <option value="">— Select Employee —</option>
+              <% employees.forEach(function(emp) { %>
+              <option value="<%= emp._id %>"
+                <%= (locals.old ? locals.old.employeeId : prefillEmployeeId) === String(emp._id) ? 'selected' : '' %>>
+                <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+              </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Review Period <span class="text-danger">*</span></label>
+            <input type="text" name="reviewPeriod" class="form-control"
+              placeholder="e.g. Q1 2025"
+              value="<%= locals.old ? locals.old.reviewPeriod : '' %>" required>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Review Type</label>
+            <select name="reviewType" class="form-control">
+              <option value="quarterly" <%= locals.old && locals.old.reviewType === 'quarterly' ? 'selected' : '' %>>Quarterly</option>
+              <option value="half-yearly" <%= locals.old && locals.old.reviewType === 'half-yearly' ? 'selected' : '' %>>Half-Yearly</option>
+              <option value="annual" <%= locals.old && locals.old.reviewType === 'annual' ? 'selected' : '' %>>Annual</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-3">
+      <h6 class="font-weight-bold text-secondary mb-3">
+        <i class="fas fa-star mr-1"></i> Ratings (1 = Poor &nbsp;·&nbsp; 5 = Excellent)
+      </h6>
+
+      <% const ratingFields = [
+        {key:'productivity', label:'Productivity'},
+        {key:'quality', label:'Quality of Work'},
+        {key:'communication', label:'Communication'},
+        {key:'teamwork', label:'Teamwork'},
+        {key:'leadership', label:'Leadership'},
+        {key:'technical', label:'Technical Skills'}
+      ]; %>
+
+      <div class="row">
+        <% ratingFields.forEach(function(field) { %>
+        <div class="col-md-4 mb-3">
+          <label class="small font-weight-bold"><%= field.label %></label>
+          <div class="d-flex align-items-center">
+            <input type="range" name="ratings[<%= field.key %>]"
+              class="custom-range mr-2 rating-slider"
+              min="1" max="5" step="1"
+              data-label="label-<%= field.key %>"
+              value="<%= locals.old && locals.old['ratings[' + field.key + ']'] ? locals.old['ratings[' + field.key + ']'] : 3 %>">
+            <span id="label-<%= field.key %>" class="badge badge-primary" style="min-width:24px;">
+              <%= locals.old && locals.old['ratings[' + field.key + ']'] ? locals.old['ratings[' + field.key + ']'] : 3 %>
+            </span>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size:0.65rem;color:#aaa;">
+            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+
+      <div class="alert alert-info small">
+        <strong>Average Rating:</strong>
+        <span id="avgRatingDisplay">—</span>
+        &nbsp;·&nbsp;
+        <strong>Grade:</strong>
+        <span id="gradeDisplay">—</span>
+      </div>
+
+      <div class="form-group">
+        <label>Overall Comment <span class="text-danger">*</span></label>
+        <textarea name="overallComment" class="form-control" rows="3"
+          placeholder="Summarise the employee's overall performance this period…"
+          minlength="10" required><%= locals.old ? locals.old.overallComment : '' %></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Strength Areas</label>
+            <textarea name="strengthAreas" class="form-control" rows="2"
+              placeholder="What does this employee do well?"><%= locals.old ? locals.old.strengthAreas : '' %></textarea>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Areas for Improvement</label>
+            <textarea name="improvementAreas" class="form-control" rows="2"
+              placeholder="What should they work on?"><%= locals.old ? locals.old.improvementAreas : '' %></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-paper-plane mr-1"></i> Submit Review
+      </button>
+      <a href="/performance/team" class="btn btn-outline-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<script>
+(function() {
+  const sliders = document.querySelectorAll('.rating-slider');
+  const grades = ['Unsatisfactory','Needs Improvement','Meets Expectations','Exceeds Expectations','Outstanding'];
+
+  function updateAvg() {
+    const vals = Array.from(sliders).map(s => parseFloat(s.value));
+    const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+    const rounded = Math.round(avg * 10) / 10;
+    document.getElementById('avgRatingDisplay').textContent = rounded.toFixed(1);
+
+    let grade = 'Unsatisfactory';
+    if (avg >= 5) grade = 'Outstanding';
+    else if (avg >= 4) grade = 'Exceeds Expectations';
+    else if (avg >= 3) grade = 'Meets Expectations';
+    else if (avg >= 2) grade = 'Needs Improvement';
+    document.getElementById('gradeDisplay').textContent = grade;
+  }
+
+  sliders.forEach(function(slider) {
+    const labelId = slider.getAttribute('data-label');
+    const label = document.getElementById(labelId);
+    slider.addEventListener('input', function() {
+      if (label) label.textContent = slider.value;
+      updateAvg();
+    });
+  });
+
+  updateAvg();
+})();
+</script>

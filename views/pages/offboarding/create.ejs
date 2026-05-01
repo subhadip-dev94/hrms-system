@@ -1,0 +1,84 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Initiate Offboarding</h1>
+  <a href="/offboarding" class="btn btn-secondary btn-sm">Back</a>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/offboarding">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Employee <span class="text-danger">*</span></label>
+            <select name="employeeId" class="form-control" required>
+              <option value="">— Select Employee —</option>
+              <% employees.forEach(e => { %>
+                <option value="<%= e._id %>"
+                  <%= (typeof old !== 'undefined' ? old.employeeId : preselected) === String(e._id) ? 'selected' : '' %>>
+                  <%= e.firstName %> <%= e.lastName %> (<%= e.employeeCode %>)
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Exit Type <span class="text-danger">*</span></label>
+            <select name="exitType" class="form-control" required>
+              <option value="">— Select —</option>
+              <% exitTypes.forEach(t => { %>
+                <option value="<%= t %>"
+                  <%= typeof old !== 'undefined' && old.exitType === t ? 'selected' : '' %>><%= t %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Resignation Date <small class="text-muted">(optional)</small></label>
+            <input type="date" name="resignationDate" class="form-control"
+              value="<%= typeof old !== 'undefined' ? old.resignationDate || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Last Working Day <span class="text-danger">*</span></label>
+            <input type="date" name="lastWorkingDay" class="form-control" required
+              value="<%= typeof old !== 'undefined' ? old.lastWorkingDay || '' : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Reason <span class="text-danger">*</span> <small class="text-muted">(min 10 chars)</small></label>
+        <textarea name="reason" class="form-control" rows="4" required minlength="10"><%= typeof old !== 'undefined' ? old.reason || '' : '' %></textarea>
+      </div>
+
+      <div class="alert alert-info mb-3">
+        <i class="fas fa-info-circle mr-2"></i>
+        Initiating offboarding will:
+        <ul class="mb-0 mt-1">
+          <li>Update employee status to <em>resigned</em> or <em>terminated</em></li>
+          <li>Create a checklist of 10 standard offboarding tasks</li>
+          <li>Send an email notification to the employee</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Initiate Offboarding</button>
+      <a href="/offboarding" class="btn btn-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>

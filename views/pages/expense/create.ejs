@@ -1,0 +1,73 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Submit Expense</h1>
+  <a href="/expense" class="btn btn-secondary btn-sm">Back</a>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/expense" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control" required
+              value="<%= typeof old !== 'undefined' ? old.title || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Category <span class="text-danger">*</span></label>
+            <select name="category" class="form-control" required>
+              <option value="">— Select —</option>
+              <% categories.forEach(c => { %>
+                <option value="<%= c %>"
+                  <%= typeof old !== 'undefined' && old.category === c ? 'selected' : '' %>><%= c %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Amount (₹) <span class="text-danger">*</span></label>
+            <input type="number" name="amount" class="form-control" min="0.01" step="0.01" required
+              value="<%= typeof old !== 'undefined' ? old.amount || '' : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Expense Date <span class="text-danger">*</span></label>
+            <input type="date" name="expenseDate" class="form-control" required
+              value="<%= typeof old !== 'undefined' ? old.expenseDate || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="form-group">
+            <label>Receipt <small class="text-muted">(JPG/PNG/PDF, max 2MB — required for amounts above ₹500)</small></label>
+            <input type="file" name="receipt" class="form-control-file" accept=".jpg,.jpeg,.png,.pdf">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" class="form-control" rows="3"><%= typeof old !== 'undefined' ? old.description || '' : '' %></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save as Draft</button>
+      <a href="/expense" class="btn btn-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>

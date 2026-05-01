@@ -1,0 +1,154 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-user-tie mr-2 text-primary"></i> Employees
+  </h1>
+  <a href="/employees/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-user-plus fa-sm mr-1"></i> Add Employee
+  </a>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">
+      <i class="fas fa-filter mr-1"></i> Search & Filter
+    </h6>
+  </div>
+  <div class="card-body py-3">
+    <form method="GET" action="/employees" class="form-row align-items-end">
+      <div class="col-md-4 mb-2">
+        <label class="small font-weight-bold text-gray-600">Search</label>
+        <input type="text" name="search" class="form-control form-control-sm"
+          placeholder="Name, email, code, designation..."
+          value="<%= filters.search %>" />
+      </div>
+      <div class="col-md-3 mb-2">
+        <label class="small font-weight-bold text-gray-600">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All Departments</option>
+          <% departments.forEach(function(dept) { %>
+            <option value="<%= dept._id %>"
+              <%= filters.departmentId === dept._id.toString() ? 'selected' : '' %>>
+              <%= dept.name %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All Status</option>
+          <option value="active"     <%= filters.status === 'active'     ? 'selected' : '' %>>Active</option>
+          <option value="resigned"   <%= filters.status === 'resigned'   ? 'selected' : '' %>>Resigned</option>
+          <option value="terminated" <%= filters.status === 'terminated' ? 'selected' : '' %>>Terminated</option>
+        </select>
+      </div>
+      <div class="col-md-2 mb-2 d-flex">
+        <button type="submit" class="btn btn-primary btn-sm mr-1 flex-fill">
+          <i class="fas fa-search mr-1"></i> Filter
+        </button>
+        <a href="/employees" class="btn btn-secondary btn-sm flex-fill">Reset</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Employees Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">
+      All Employees
+      <span class="badge badge-primary ml-2"><%= employees.length %></span>
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-datatable" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th style="width:90px;">Code</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th style="width:100px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% employees.forEach(function(emp) { %>
+            <tr>
+              <td>
+                <span class="badge badge-secondary font-weight-bold">
+                  <%= emp.employeeCode %>
+                </span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <% if (emp.profilePhoto) { %>
+                    <img src="<%= emp.profilePhoto %>" class="rounded-circle mr-2"
+                      width="36" height="36"
+                      style="object-fit:cover;border:2px solid #e3e6f0;flex-shrink:0;" />
+                  <% } else { %>
+                    <div class="rounded-circle mr-2 d-flex align-items-center justify-content-center
+                                bg-primary text-white font-weight-bold"
+                      style="width:36px;height:36px;font-size:13px;flex-shrink:0;">
+                      <%= emp.firstName.charAt(0).toUpperCase() %><%= emp.lastName.charAt(0).toUpperCase() %>
+                    </div>
+                  <% } %>
+                  <div>
+                    <div class="font-weight-bold text-gray-800">
+                      <%= emp.firstName %> <%= emp.lastName %>
+                    </div>
+                    <% if (emp.managerId) { %>
+                      <small class="text-muted">
+                        <i class="fas fa-sitemap fa-xs mr-1"></i>
+                        <%= emp.managerId.firstName %> <%= emp.managerId.lastName %>
+                      </small>
+                    <% } %>
+                  </div>
+                </div>
+              </td>
+              <td class="small"><%= emp.email %></td>
+              <td class="small"><%= emp.phone || '—' %></td>
+              <td><%= emp.departmentId ? emp.departmentId.name : '<span class="text-muted">—</span>' %></td>
+              <td class="small"><%= emp.designation || '—' %></td>
+              <td>
+                <span class="badge badge-light text-capitalize border">
+                  <%= emp.role %>
+                </span>
+              </td>
+              <td>
+                <% if (emp.status === 'active') { %>
+                  <span class="badge badge-success px-2 py-1">Active</span>
+                <% } else if (emp.status === 'resigned') { %>
+                  <span class="badge badge-warning px-2 py-1">Resigned</span>
+                <% } else { %>
+                  <span class="badge badge-danger px-2 py-1">Terminated</span>
+                <% } %>
+              </td>
+              <td class="text-center">
+                <a href="/employees/<%= emp._id %>/edit"
+                   class="btn btn-sm btn-info btn-icon mr-1" title="Edit Employee">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <% if (emp.status !== 'terminated') { %>
+                <form action="/employees/<%= emp._id %>?_method=DELETE" method="POST"
+                      style="display:inline;"
+                      onsubmit="return confirm('Terminate <%= emp.firstName %> <%= emp.lastName %>?\nThis will deactivate their login account.')">
+                  <button type="submit" class="btn btn-sm btn-danger btn-icon" title="Terminate">
+                    <i class="fas fa-user-slash"></i>
+                  </button>
+                </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,174 @@
+<!-- ════ Topbar ══════════════════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+  <!-- Sidebar Toggle (mobile) -->
+  <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+    <i class="fa fa-bars"></i>
+  </button>
+
+  <ul class="navbar-nav ml-auto">
+
+    <!-- Pending Leave Approvals (managers / HR / admin only) -->
+    <% if (currentUser && ['admin','hr','manager'].includes(currentUser.role)) { %>
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="leaveDropdown" role="button"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-user-clock fa-fw"></i>
+        <span id="pendingLeaveBadge" class="badge badge-warning badge-counter"
+              style="display:<%= pendingLeaveCount > 0 ? 'inline-block' : 'none' %>">
+          <%= pendingLeaveCount > 9 ? '9+' : pendingLeaveCount %>
+        </span>
+      </a>
+      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+        aria-labelledby="leaveDropdown">
+        <h6 class="dropdown-header">Leave Approvals</h6>
+        <% if (pendingLeaveCount > 0) { %>
+          <a class="dropdown-item d-flex align-items-center" href="/leaves/approvals">
+            <div class="mr-3">
+              <div class="icon-circle bg-warning">
+                <i class="fas fa-clock text-white"></i>
+              </div>
+            </div>
+            <div>
+              <div class="small text-gray-500">Action required</div>
+              <span class="font-weight-bold">
+                <%= pendingLeaveCount %> leave request<%= pendingLeaveCount > 1 ? 's' : '' %> pending your approval
+              </span>
+            </div>
+          </a>
+        <% } else { %>
+          <div class="dropdown-item text-center small text-muted py-3">
+            <i class="fas fa-check-circle text-success mr-1"></i> No pending leave requests
+          </div>
+        <% } %>
+        <a class="dropdown-item text-center small text-gray-500" href="/leaves/approvals">
+          Go to Leave Approvals
+        </a>
+      </div>
+    </li>
+    <% } %>
+
+    <!-- Announcements Bell -->
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-bell fa-fw"></i>
+        <span id="announcementBadge" class="badge badge-danger badge-counter"
+              style="display:<%= unreadAnnouncementCount > 0 ? 'inline-block' : 'none' %>">
+          <%= unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount %>
+        </span>
+      </a>
+      <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+        aria-labelledby="alertsDropdown">
+        <h6 class="dropdown-header">Announcements</h6>
+        <% if (navbarAnnouncements && navbarAnnouncements.length > 0) { %>
+          <% navbarAnnouncements.forEach(a => { %>
+            <a class="dropdown-item d-flex align-items-center" href="/announcements">
+              <div class="mr-3">
+                <div class="icon-circle <%= a.isRead ? 'bg-secondary' : 'bg-primary' %>">
+                  <i class="fas fa-bullhorn text-white"></i>
+                </div>
+              </div>
+              <div>
+                <div class="small text-gray-500"><%= new Date(a.createdAt).toLocaleDateString('en-IN') %></div>
+                <span class="<%= a.isRead ? 'text-muted' : 'font-weight-bold' %>"><%= a.title %></span>
+              </div>
+            </a>
+          <% }) %>
+          <a class="dropdown-item text-center small text-gray-500" href="/announcements">Show All Announcements</a>
+        <% } else { %>
+          <div class="dropdown-item text-center small text-muted">No announcements</div>
+        <% } %>
+      </div>
+    </li>
+
+    <!-- Theme Switcher -->
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Change Theme">
+        <i class="fas fa-palette fa-fw"></i>
+      </a>
+      <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-3"
+           aria-labelledby="themeDropdown" style="min-width:210px;">
+        <div class="dropdown-header px-0 pt-0 pb-2 font-weight-bold text-xs text-uppercase text-gray-500">
+          <i class="fas fa-fill-drip mr-1"></i> Theme Color
+        </div>
+        <div class="d-flex align-items-center flex-wrap">
+          <button class="theme-swatch mr-2 mb-1" data-theme="black" onclick="setTheme('black')"
+            style="background:linear-gradient(135deg,#2d2d2d,#000000);" title="Obsidian Black (Default)"></button>
+          <button class="theme-swatch mr-2 mb-1" data-theme="blue" onclick="setTheme('blue')"
+            style="background:linear-gradient(135deg,#4e73df,#224abe);" title="Ocean Blue"></button>
+          <button class="theme-swatch mr-2 mb-1" data-theme="dark" onclick="setTheme('dark')"
+            style="background:linear-gradient(135deg,#34495e,#1a252f);" title="Midnight Dark"></button>
+          <button class="theme-swatch mr-2 mb-1" data-theme="red" onclick="setTheme('red')"
+            style="background:linear-gradient(135deg,#e74c3c,#c0392b);" title="Crimson Red"></button>
+          <button class="theme-swatch mr-2 mb-1" data-theme="purple" onclick="setTheme('purple')"
+            style="background:linear-gradient(135deg,#8a63d2,#5a32a3);" title="Royal Purple"></button>
+          <button class="theme-swatch mb-1" data-theme="teal" onclick="setTheme('teal')"
+            style="background:linear-gradient(135deg,#1cc88a,#13855c);" title="Emerald Teal"></button>
+        </div>
+        <div class="mt-2 text-xs text-muted">Click a swatch to apply instantly</div>
+      </div>
+    </li>
+
+    <div class="topbar-divider d-none d-sm-block"></div>
+
+    <!-- User info dropdown -->
+    <li class="nav-item dropdown no-arrow">
+      <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+          <%= currentUser ? currentUser.name : 'User' %>
+          <span class="badge badge-primary ml-1 text-capitalize">
+            <%= currentUser ? currentUser.role : '' %>
+          </span>
+        </span>
+        <% if (currentUser && currentUser.profilePhoto) { %>
+          <img class="img-profile rounded-circle" src="<%= currentUser.profilePhoto %>"
+            width="40" height="40" style="object-fit:cover;" />
+        <% } else { %>
+          <img class="img-profile rounded-circle"
+            src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(currentUser ? currentUser.name : 'U') %>&background=4e73df&color=fff&size=40&bold=true"
+            width="40" height="40" />
+        <% } %>
+      </a>
+
+      <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+        <div class="dropdown-item disabled text-xs text-gray-500">
+          Logged in as <strong><%= currentUser ? currentUser.role : '' %></strong>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="/profile">
+          <i class="fas fa-user-circle fa-sm fa-fw mr-2 text-gray-400"></i> My Profile
+        </a>
+        <a class="dropdown-item" href="/auth/change-password">
+          <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-400"></i> Change Password
+        </a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#logoutModal">
+          <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i> Logout
+        </a>
+      </div>
+    </li>
+  </ul>
+</nav>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ready to Leave?</h5>
+        <button class="close" type="button" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        Select <strong>Logout</strong> below if you are ready to end your current session.
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-primary" href="/auth/logout">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ════ End Topbar ══════════════════════════════════════════════════════════ -->

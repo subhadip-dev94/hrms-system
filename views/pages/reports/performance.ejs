@@ -1,0 +1,135 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Performance Report</h1>
+  <a href="/reports" class="btn btn-secondary btn-sm">Back</a>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/reports/performance" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% departments.forEach(d => { %>
+            <option value="<%= d._id %>" <%= filters.departmentId === String(d._id) ? 'selected' : '' %>><%= d.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Quarter</label>
+        <select name="quarter" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% ['Q1','Q2','Q3','Q4'].forEach(q => { %>
+            <option value="<%= q %>" <%= filters.quarter === q ? 'selected' : '' %>><%= q %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Year</label>
+        <input type="number" name="year" class="form-control form-control-sm" value="<%= filters.year %>" style="width:90px">
+      </div>
+      <button type="submit" class="btn btn-info btn-sm mb-2">Apply</button>
+      <a href="/reports/performance" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Top Performers + Grade Distribution -->
+<div class="row mb-4">
+  <% if (summary.topPerformers && summary.topPerformers.length > 0) { %>
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-trophy mr-1 text-warning"></i> Top 5 Performers</h6>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="thead-light">
+            <tr><th>#</th><th>Name</th><th>Dept</th><th>Avg Rating</th><th>Grade</th></tr>
+          </thead>
+          <tbody>
+            <% summary.topPerformers.forEach((p, i) => { %>
+              <tr>
+                <td><%= i+1 %></td>
+                <td><%= p.name %></td>
+                <td><%= p.department %></td>
+                <td><span class="badge badge-primary"><%= p.avgRating %>/5</span></td>
+                <td>
+                  <% const gc = { 'Outstanding': 'warning', 'Exceeds Expectations': 'success', 'Meets Expectations': 'primary', 'Needs Improvement': 'secondary', 'Unsatisfactory': 'danger' }; %>
+                  <span class="badge badge-<%= gc[p.grade] || 'secondary' %>"><%= p.grade %></span>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Grade Distribution</h6>
+      </div>
+      <div class="card-body">
+        <% const gradeColors = { 'Outstanding': 'warning', 'Exceeds Expectations': 'success', 'Meets Expectations': 'primary', 'Needs Improvement': 'secondary', 'Unsatisfactory': 'danger' }; %>
+        <% Object.entries(summary.gradeCount || {}).forEach(([grade, count]) => { %>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small"><%= grade %></span>
+            <span class="badge badge-<%= gradeColors[grade] || 'secondary' %> badge-pill"><%= count %></span>
+          </div>
+        <% }) %>
+        <% if (!Object.keys(summary.gradeCount || {}).length) { %>
+          <p class="text-muted small">No review data available.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main table -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>Name</th><th>Code</th><th>Dept</th>
+            <th>Avg Rating</th><th>Grade</th><th>Reviews</th>
+            <th>KPIs</th><th>KPI Completion</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(r => { %>
+            <%
+              const gradeC = { 'Outstanding': 'warning', 'Exceeds Expectations': 'success', 'Meets Expectations': 'primary', 'Needs Improvement': 'secondary', 'Unsatisfactory': 'danger' };
+            %>
+            <tr>
+              <td><%= r.name %></td>
+              <td><code><%= r.code %></code></td>
+              <td><%= r.department %></td>
+              <td><%= r.avgRating > 0 ? r.avgRating + '/5' : '—' %></td>
+              <td>
+                <% if (r.grade !== '—') { %>
+                  <span class="badge badge-<%= gradeC[r.grade] || 'secondary' %>"><%= r.grade %></span>
+                <% } else { %>—<% } %>
+              </td>
+              <td><%= r.reviewCount %></td>
+              <td><%= r.kpiCount %></td>
+              <td>
+                <div class="progress" style="height:12px;min-width:80px;">
+                  <div class="progress-bar bg-success" style="width:<%= r.kpiPct %>%"></div>
+                </div>
+                <small><%= r.kpiPct %>%</small>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

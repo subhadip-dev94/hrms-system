@@ -1,0 +1,91 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">All Expenses</h1>
+  <a href="/expense/approvals" class="btn btn-warning btn-sm">Pending Approvals</a>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/expense/all" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Category</label>
+        <select name="category" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% categories.forEach(c => { %>
+            <option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% ['draft','submitted','manager_approved','approved','rejected','paid'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">From</label>
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="<%= filters.dateFrom || '' %>">
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">To</label>
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="<%= filters.dateTo || '' %>">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mb-2">Filter</button>
+      <a href="/expense/all" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (expenses.length === 0) { %>
+      <p class="text-center text-muted mt-3">No expenses found.</p>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm">
+          <thead class="thead-light">
+            <tr>
+              <th>Code</th>
+              <th>Employee</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses.forEach(e => { %>
+              <%
+                const statusColor = {
+                  draft: 'secondary', submitted: 'warning', manager_approved: 'info',
+                  approved: 'primary', rejected: 'danger', paid: 'success'
+                };
+              %>
+              <tr>
+                <td><code><%= e.expenseCode %></code></td>
+                <td>
+                  <% if (e.employeeId && e.employeeId.firstName) { %>
+                    <%= e.employeeId.firstName %> <%= e.employeeId.lastName %>
+                  <% } else { %>—<% } %>
+                </td>
+                <td><a href="/expense/<%= e._id %>"><%= e.title %></a></td>
+                <td><span class="badge badge-light border"><%= e.category %></span></td>
+                <td>₹<%= e.amount.toLocaleString('en-IN') %></td>
+                <td><%= new Date(e.expenseDate).toLocaleDateString('en-IN') %></td>
+                <td><span class="badge badge-<%= statusColor[e.status] || 'secondary' %>"><%= e.status %></span></td>
+                <td><a href="/expense/<%= e._id %>" class="btn btn-info btn-sm">View</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

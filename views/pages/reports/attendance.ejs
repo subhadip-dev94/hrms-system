@@ -1,0 +1,124 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Attendance Report</h1>
+  <div>
+    <a href="/reports/attendance/export?<%= new URLSearchParams(filters).toString() %>" class="btn btn-primary btn-sm">
+      <i class="fas fa-download mr-1"></i> Export PDF
+    </a>
+    <a href="/reports" class="btn btn-secondary btn-sm ml-1">Back</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/reports/attendance" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Month</label>
+        <select name="month" class="form-control form-control-sm">
+          <% ['January','February','March','April','May','June','July','August','September','October','November','December'].forEach((m,i) => { %>
+            <option value="<%= i+1 %>" <%= parseInt(filters.month) === i+1 ? 'selected' : '' %>><%= m %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Year</label>
+        <input type="number" name="year" class="form-control form-control-sm" value="<%= filters.year %>" style="width:90px">
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% departments.forEach(d => { %>
+            <option value="<%= d._id %>" <%= filters.departmentId === String(d._id) ? 'selected' : '' %>><%= d.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mb-2">Apply</button>
+      <a href="/reports/attendance" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Employees</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.totalEmployees %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Avg Attendance</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.avgAttendancePct %>%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Present Days</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.totalPresent %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-danger shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Absent Days</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.totalAbsent %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Data table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary"><%= getMonthName(summary.month) %> <%= summary.year %> — Attendance Details</h6>
+  </div>
+  <div class="card-body">
+    <% if (rows.length === 0) { %>
+      <p class="text-center text-muted">No attendance data found for the selected filters.</p>
+    <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>Name</th><th>Code</th><th>Dept</th>
+            <th>Present</th><th>Absent</th><th>Late</th>
+            <th>On Leave</th><th>Half Day</th><th>Hours</th>
+            <th>Att %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(r => { %>
+            <tr>
+              <td><%= r.name %></td>
+              <td><code><%= r.code %></code></td>
+              <td><%= r.department %></td>
+              <td class="text-success font-weight-bold"><%= r.present %></td>
+              <td class="text-danger"><%= r.absent %></td>
+              <td class="text-warning"><%= r.late %></td>
+              <td class="text-info"><%= r.onLeave %></td>
+              <td><%= r.halfDay %></td>
+              <td><%= r.totalHours %></td>
+              <td>
+                <% const pct = r.attendancePct; %>
+                <span class="badge badge-<%= pct >= 90 ? 'success' : pct >= 75 ? 'warning' : 'danger' %>">
+                  <%= pct %>%
+                </span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>

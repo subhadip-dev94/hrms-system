@@ -1,0 +1,155 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-users mr-2 text-primary"></i> Team Performance
+  </h1>
+  <div>
+    <a href="/performance/review/new" class="btn btn-primary btn-sm shadow-sm mr-2">
+      <i class="fas fa-star fa-sm mr-1"></i> Submit Review
+    </a>
+    <a href="/performance/create" class="btn btn-outline-primary btn-sm shadow-sm">
+      <i class="fas fa-bullseye fa-sm mr-1"></i> Assign KPI
+    </a>
+  </div>
+</div>
+
+<% if (!teamData || teamData.length === 0) { %>
+<div class="card shadow mb-4">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="fas fa-users fa-3x d-block mb-3 text-gray-300"></i>
+    No direct reports found.
+    <% if (currentUser && ['admin','hr'].includes(currentUser.role)) { %>
+    All employees are shown for HR/Admin.
+    <% } %>
+  </div>
+</div>
+<% } else { %>
+
+<!-- Summary Row -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Team Size</div>
+        <div class="h5 mb-0 font-weight-bold"><%= teamData.length %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Avg KPI Score</div>
+        <div class="h5 mb-0 font-weight-bold">
+          <% const avgKPI = teamData.length > 0 ? Math.round(teamData.reduce((s,t) => s + t.kpiScore, 0) / teamData.length) : 0; %>
+          <%= avgKPI %>%
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active KPIs</div>
+        <div class="h5 mb-0 font-weight-bold">
+          <%= teamData.reduce((s,t) => s + t.activeKPIs, 0) %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Acknowledgements</div>
+        <div class="h5 mb-0 font-weight-bold">
+          <%= teamData.reduce((s,t) => s + t.pendingAcknowledgements, 0) %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Team Table -->
+<div class="card shadow mb-4">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th>
+            <th>Active KPIs</th>
+            <th>KPI Progress</th>
+            <th>Latest Grade</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% teamData.forEach(function(row) { %>
+          <tr>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="rounded-circle mr-2 d-flex align-items-center justify-content-center
+                    bg-primary text-white font-weight-bold"
+                  style="width:36px;height:36px;font-size:12px;flex-shrink:0;">
+                  <%= row.employee.firstName.charAt(0) %><%= row.employee.lastName.charAt(0) %>
+                </div>
+                <div>
+                  <div class="font-weight-bold">
+                    <%= row.employee.firstName %> <%= row.employee.lastName %>
+                  </div>
+                  <small class="text-muted">
+                    <%= row.employee.employeeCode %>
+                    <% if (row.employee.departmentId) { %>· <%= row.employee.departmentId.name %><% } %>
+                  </small>
+                </div>
+              </div>
+            </td>
+            <td class="align-middle">
+              <% if (row.activeKPIs > 0) { %>
+                <span class="badge badge-primary"><%= row.activeKPIs %> KPI<%= row.activeKPIs > 1 ? 's' : '' %></span>
+              <% } else { %>
+                <span class="text-muted small">None assigned</span>
+              <% } %>
+            </td>
+            <td class="align-middle" style="min-width:140px;">
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1 mr-2" style="height:8px;">
+                  <div class="progress-bar
+                    <%= row.kpiScore >= 80 ? 'bg-success' : row.kpiScore >= 50 ? 'bg-primary' : row.kpiScore >= 30 ? 'bg-warning' : 'bg-danger' %>"
+                    style="width:<%= row.kpiScore %>%"></div>
+                </div>
+                <span class="small font-weight-bold"><%= row.kpiScore %>%</span>
+              </div>
+            </td>
+            <td class="align-middle">
+              <% if (row.latestGrade && row.latestGrade !== '—') { %>
+                <span class="badge
+                  <%= row.latestGrade === 'Outstanding' || row.latestGrade === 'Exceeds Expectations' ? 'badge-success' :
+                     row.latestGrade === 'Meets Expectations' ? 'badge-primary' :
+                     row.latestGrade === 'Needs Improvement' ? 'badge-warning' : 'badge-danger' %>">
+                  <%= row.latestGrade %>
+                </span>
+                <% if (row.latestPeriod && row.latestPeriod !== '—') { %>
+                <small class="d-block text-muted"><%= row.latestPeriod %></small>
+                <% } %>
+              <% } else { %>
+                <span class="text-muted small">No review yet</span>
+              <% } %>
+            </td>
+            <td class="align-middle text-nowrap">
+              <a href="/performance/create?employeeId=<%= row.employee._id %>"
+                class="btn btn-sm btn-outline-primary mr-1" title="Assign KPI">
+                <i class="fas fa-bullseye"></i>
+              </a>
+              <a href="/performance/review/new?employeeId=<%= row.employee._id %>"
+                class="btn btn-sm btn-outline-warning" title="Submit Review">
+                <i class="fas fa-star"></i>
+              </a>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% } %>

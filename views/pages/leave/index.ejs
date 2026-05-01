@@ -1,0 +1,154 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-list-alt mr-2 text-primary"></i> All Leave Applications
+  </h1>
+  <a href="/leaves/approvals" class="btn btn-warning btn-sm shadow-sm">
+    <i class="fas fa-tasks fa-sm mr-1"></i> Approval Queue
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter mr-1"></i> Filters</h6>
+  </div>
+  <div class="card-body py-3">
+    <form method="GET" action="/leaves" class="form-row align-items-end">
+
+      <div class="form-group col-md-3 mb-2">
+        <label class="small font-weight-bold text-gray-600">Employee</label>
+        <select name="employeeId" class="form-control form-control-sm">
+          <option value="">All Employees</option>
+          <% employees.forEach(function(emp) { %>
+            <option value="<%= emp._id %>" <%= filters.employeeId === emp._id.toString() ? 'selected':'' %>>
+              <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Leave Type</label>
+        <select name="leaveType" class="form-control form-control-sm">
+          <option value="">All Types</option>
+          <option value="casual"  <%= filters.leaveType === 'casual'  ? 'selected':'' %>>Casual</option>
+          <option value="sick"    <%= filters.leaveType === 'sick'    ? 'selected':'' %>>Sick</option>
+          <option value="earned"  <%= filters.leaveType === 'earned'  ? 'selected':'' %>>Earned</option>
+          <option value="unpaid"  <%= filters.leaveType === 'unpaid'  ? 'selected':'' %>>Unpaid</option>
+        </select>
+      </div>
+
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All Status</option>
+          <option value="pending"          <%= filters.status === 'pending'          ? 'selected':'' %>>Pending</option>
+          <option value="manager_approved" <%= filters.status === 'manager_approved' ? 'selected':'' %>>Mgr Approved</option>
+          <option value="approved"         <%= filters.status === 'approved'         ? 'selected':'' %>>Approved</option>
+          <option value="rejected"         <%= filters.status === 'rejected'         ? 'selected':'' %>>Rejected</option>
+          <option value="cancelled"        <%= filters.status === 'cancelled'        ? 'selected':'' %>>Cancelled</option>
+        </select>
+      </div>
+
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Month</label>
+        <select name="month" class="form-control form-control-sm">
+          <option value="">Any Month</option>
+          <% const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']; %>
+          <% for (let m = 1; m <= 12; m++) { %>
+            <option value="<%= m %>" <%= parseInt(filters.month) === m ? 'selected':'' %>><%= monthNames[m-1] %></option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="form-group col-md-1 mb-2">
+        <label class="small font-weight-bold text-gray-600">Year</label>
+        <select name="year" class="form-control form-control-sm">
+          <% for (let y = new Date().getFullYear(); y >= new Date().getFullYear()-2; y--) { %>
+            <option value="<%= y %>" <%= parseInt(filters.year) === y ? 'selected':'' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="form-group col-md-2 mb-2 d-flex">
+        <button type="submit" class="btn btn-primary btn-sm mr-1 flex-fill">
+          <i class="fas fa-search mr-1"></i> Filter
+        </button>
+        <a href="/leaves" class="btn btn-secondary btn-sm flex-fill">Reset</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- Leave Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">
+      Results <span class="badge badge-primary ml-2"><%= leaves.length %></span>
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-sm table-datatable" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th>
+            <th>Type</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Days</th>
+            <th>Status</th>
+            <th>Manager Action</th>
+            <th>HR Action</th>
+            <th>Applied</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leaves.forEach(function(leave) { %>
+            <tr>
+              <td class="small">
+                <% if (leave.employeeId) { %>
+                  <div class="font-weight-bold"><%= leave.employeeId.firstName %> <%= leave.employeeId.lastName %></div>
+                  <div class="text-muted" style="font-size:11px;"><%= leave.employeeId.employeeCode %></div>
+                <% } else { %>—<% } %>
+              </td>
+              <td><span class="badge badge-light border text-capitalize font-weight-bold"><%= leave.leaveType %></span></td>
+              <td class="small font-weight-bold">
+                <%= new Date(leave.startDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+              <td class="small font-weight-bold">
+                <%= new Date(leave.endDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+              <td class="text-center"><span class="badge badge-primary"><%= leave.totalDays %></span></td>
+              <td>
+                <% if (leave.status === 'pending') { %><span class="badge badge-warning">Pending</span>
+                <% } else if (leave.status === 'manager_approved') { %><span class="badge badge-info">Mgr Approved</span>
+                <% } else if (leave.status === 'approved') { %><span class="badge badge-success">Approved</span>
+                <% } else if (leave.status === 'rejected') { %><span class="badge badge-danger">Rejected</span>
+                <% } else if (leave.status === 'cancelled') { %><span class="badge badge-secondary">Cancelled</span>
+                <% } %>
+              </td>
+              <td class="small text-muted">
+                <% if (leave.managerAction && leave.managerAction.actionBy) { %>
+                  <div><%= leave.managerAction.actionBy.firstName %> <%= leave.managerAction.actionBy.lastName %></div>
+                  <div style="font-size:10px;"><%= new Date(leave.managerAction.actionAt).toLocaleDateString('en-IN') %></div>
+                <% } else { %>—<% } %>
+              </td>
+              <td class="small text-muted">
+                <% if (leave.hrAction && leave.hrAction.actionBy) { %>
+                  <div><%= leave.hrAction.actionBy.firstName %> <%= leave.hrAction.actionBy.lastName %></div>
+                  <div style="font-size:10px;"><%= new Date(leave.hrAction.actionAt).toLocaleDateString('en-IN') %></div>
+                <% } else { %>—<% } %>
+              </td>
+              <td class="small text-muted">
+                <%= new Date(leave.appliedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

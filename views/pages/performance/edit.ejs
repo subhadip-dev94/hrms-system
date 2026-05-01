@@ -1,0 +1,113 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-edit mr-2 text-primary"></i> Edit KPI
+  </h1>
+  <a href="/performance/team" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<% if (locals.errors && errors.length > 0) { %>
+<div class="alert alert-danger">
+  <ul class="mb-0">
+    <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">
+      KPI for
+      <%= kpi.employeeId ? kpi.employeeId.firstName + ' ' + kpi.employeeId.lastName : '—' %>
+    </h6>
+  </div>
+  <div class="card-body">
+    <form action="/performance/<%= kpi._id %>?_method=PUT" method="POST">
+      <input type="hidden" name="employeeId" value="<%= kpi.employeeId ? kpi.employeeId._id : '' %>">
+
+      <div class="row">
+        <div class="col-md-8">
+          <div class="form-group">
+            <label>Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control"
+              value="<%= locals.old ? locals.old.title : kpi.title %>"
+              maxlength="150" required>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category" class="form-control">
+              <% ['productivity','quality','communication','leadership','technical','other'].forEach(function(cat) { %>
+              <option value="<%= cat %>"
+                <%= (locals.old ? locals.old.category : kpi.category) === cat ? 'selected' : '' %>>
+                <%= cat.charAt(0).toUpperCase() + cat.slice(1) %>
+              </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" class="form-control" rows="2"><%= locals.old ? locals.old.description : (kpi.description || '') %></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Target Value <span class="text-danger">*</span></label>
+            <input type="number" name="targetValue" class="form-control"
+              min="0.01" step="0.01"
+              value="<%= locals.old ? locals.old.targetValue : kpi.targetValue %>" required>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Unit <span class="text-danger">*</span></label>
+            <select name="unit" class="form-control" required>
+              <option value="%" <%= (locals.old ? locals.old.unit : kpi.unit) === '%' ? 'selected' : '' %>>%</option>
+              <option value="number" <%= (locals.old ? locals.old.unit : kpi.unit) === 'number' ? 'selected' : '' %>>Number</option>
+              <option value="currency" <%= (locals.old ? locals.old.unit : kpi.unit) === 'currency' ? 'selected' : '' %>>Currency (₹)</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Weightage (%)</label>
+            <input type="number" name="weightage" class="form-control"
+              min="1" max="100"
+              value="<%= locals.old ? locals.old.weightage : kpi.weightage %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Period Start <span class="text-danger">*</span></label>
+            <input type="date" name="periodStart" class="form-control"
+              value="<%= locals.old ? locals.old.periodStart : (kpi.periodStart ? new Date(kpi.periodStart).toISOString().split('T')[0] : '') %>"
+              required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Period End <span class="text-danger">*</span></label>
+            <input type="date" name="periodEnd" class="form-control"
+              value="<%= locals.old ? locals.old.periodEnd : (kpi.periodEnd ? new Date(kpi.periodEnd).toISOString().split('T')[0] : '') %>"
+              required>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save mr-1"></i> Update KPI
+      </button>
+      <a href="/performance/team" class="btn btn-outline-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>

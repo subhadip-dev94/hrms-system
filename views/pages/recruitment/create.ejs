@@ -1,0 +1,122 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Create Job Posting</h1>
+  <a href="/recruitment" class="btn btn-secondary btn-sm">Back</a>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/recruitment">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Job Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control" required
+              value="<%= typeof old !== 'undefined' ? old.title || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Department</label>
+            <select name="departmentId" class="form-control">
+              <option value="">— Select Department —</option>
+              <% departments.forEach(d => { %>
+                <option value="<%= d._id %>"
+                  <%= typeof old !== 'undefined' && old.departmentId === String(d._id) ? 'selected' : '' %>>
+                  <%= d.name %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Job Type <span class="text-danger">*</span></label>
+            <select name="jobType" class="form-control" required>
+              <option value="">— Select —</option>
+              <% ['full-time','part-time','contract','internship','remote'].forEach(t => { %>
+                <option value="<%= t %>"
+                  <%= typeof old !== 'undefined' && old.jobType === t ? 'selected' : '' %>><%= t %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Min Experience (yrs)</label>
+            <input type="number" name="experienceMin" class="form-control" min="0" step="0.5"
+              value="<%= typeof old !== 'undefined' ? old.experienceMin || 0 : 0 %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Max Experience (yrs)</label>
+            <input type="number" name="experienceMax" class="form-control" min="0" step="0.5"
+              value="<%= typeof old !== 'undefined' ? old.experienceMax || 0 : 0 %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Min Salary (₹)</label>
+            <input type="number" name="salaryMin" class="form-control" min="0"
+              value="<%= typeof old !== 'undefined' ? old.salaryMin || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Max Salary (₹)</label>
+            <input type="number" name="salaryMax" class="form-control" min="0"
+              value="<%= typeof old !== 'undefined' ? old.salaryMax || '' : '' %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Total Positions</label>
+            <input type="number" name="totalPositions" class="form-control" min="1" value="<%= typeof old !== 'undefined' ? old.totalPositions || 1 : 1 %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Application Deadline</label>
+            <input type="date" name="applicationDeadline" class="form-control"
+              value="<%= typeof old !== 'undefined' ? old.applicationDeadline || '' : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" name="location" class="form-control"
+          value="<%= typeof old !== 'undefined' ? old.location || '' : '' %>">
+      </div>
+
+      <div class="form-group">
+        <label>Job Description <span class="text-danger">*</span></label>
+        <textarea name="description" class="form-control" rows="5" required><%= typeof old !== 'undefined' ? old.description || '' : '' %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Requirements</label>
+        <textarea name="requirements" class="form-control" rows="4"><%= typeof old !== 'undefined' ? old.requirements || '' : '' %></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Create Job Posting</button>
+      <a href="/recruitment" class="btn btn-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>

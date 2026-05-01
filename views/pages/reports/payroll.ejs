@@ -1,0 +1,149 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Payroll Report</h1>
+  <div>
+    <a href="/reports/payroll/export?<%= new URLSearchParams(filters).toString() %>" class="btn btn-warning btn-sm">
+      <i class="fas fa-download mr-1"></i> Export PDF
+    </a>
+    <a href="/reports" class="btn btn-secondary btn-sm ml-1">Back</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/reports/payroll" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Month</label>
+        <select name="month" class="form-control form-control-sm">
+          <% ['January','February','March','April','May','June','July','August','September','October','November','December'].forEach((m,i) => { %>
+            <option value="<%= i+1 %>" <%= parseInt(filters.month) === i+1 ? 'selected' : '' %>><%= m %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Year</label>
+        <input type="number" name="year" class="form-control form-control-sm" value="<%= filters.year %>" style="width:90px">
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% departments.forEach(d => { %>
+            <option value="<%= d._id %>" <%= filters.departmentId === String(d._id) ? 'selected' : '' %>><%= d.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-warning btn-sm mb-2">Apply</button>
+      <a href="/reports/payroll" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Payroll</div>
+        <div class="h5 mb-0 font-weight-bold">₹<%= summary.totalPayroll.toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Avg Salary</div>
+        <div class="h5 mb-0 font-weight-bold">₹<%= summary.avgSalary.toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Highest Net Pay</div>
+        <div class="h5 mb-0 font-weight-bold">₹<%= summary.highestSalary.toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Employees Paid</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.totalEmployees %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dept averages -->
+<% if (summary.deptAvg && summary.deptAvg.length > 0) { %>
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-warning">Department Average Net Pay</h6>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <% summary.deptAvg.forEach(d => { %>
+        <div class="col-md-4 mb-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small font-weight-bold"><%= d.department %></span>
+            <span class="text-warning font-weight-bold">₹<%= d.avg.toLocaleString('en-IN') %></span>
+          </div>
+          <div class="progress mt-1" style="height:4px;">
+            <div class="progress-bar bg-warning" style="width:<%= summary.highestSalary > 0 ? Math.round((d.avg/summary.highestSalary)*100) : 0 %>%"></div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- Main table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-warning"><%= getMonthName(summary.month) %> <%= summary.year %> — Payroll Details</h6>
+  </div>
+  <div class="card-body">
+    <% if (rows.length === 0) { %>
+      <p class="text-center text-muted">No payroll data for the selected period.</p>
+    <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>Name</th><th>Code</th><th>Dept</th><th>Designation</th>
+            <th>Basic</th><th>Gross</th><th>PF</th><th>ESI</th><th>Tax</th>
+            <th>Total Ded.</th><th class="text-success">Net Pay</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(r => { %>
+            <tr>
+              <td><%= r.name %></td>
+              <td><code><%= r.code %></code></td>
+              <td><%= r.department %></td>
+              <td><%= r.designation %></td>
+              <td>₹<%= r.basic.toLocaleString('en-IN') %></td>
+              <td>₹<%= r.gross.toLocaleString('en-IN') %></td>
+              <td>₹<%= r.pf.toLocaleString('en-IN') %></td>
+              <td>₹<%= r.esi.toLocaleString('en-IN') %></td>
+              <td>₹<%= r.tax.toLocaleString('en-IN') %></td>
+              <td class="text-danger">₹<%= r.deductions.toLocaleString('en-IN') %></td>
+              <td class="text-success font-weight-bold">₹<%= r.netPay.toLocaleString('en-IN') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+        <tfoot class="thead-light font-weight-bold">
+          <tr>
+            <td colspan="10" class="text-right">Total Payroll:</td>
+            <td class="text-success">₹<%= summary.totalPayroll.toLocaleString('en-IN') %></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>

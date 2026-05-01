@@ -1,0 +1,148 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-edit mr-2 text-primary"></i> Edit Salary Structure
+  </h1>
+  <a href="/salary" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<% if (locals.errors && errors.length > 0) { %>
+<div class="alert alert-danger">
+  <ul class="mb-0">
+    <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold text-primary">
+      <%= salary.employeeId ? salary.employeeId.firstName + ' ' + salary.employeeId.lastName : '' %>
+      <span class="badge badge-secondary ml-2">
+        <%= salary.employeeId ? salary.employeeId.employeeCode : '' %>
+      </span>
+    </h6>
+    <span class="small text-muted">Current Gross: <strong>₹ <%= salary.grossSalary.toLocaleString('en-IN') %></strong></span>
+  </div>
+  <div class="card-body">
+    <form action="/salary/<%= salary.employeeId ? salary.employeeId._id : '' %>?_method=PUT" method="POST">
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Basic Salary (₹) <span class="text-danger">*</span></label>
+            <input type="number" name="basicSalary" class="form-control" min="1" step="0.01"
+              value="<%= locals.old ? locals.old.basicSalary : salary.earnings.basicSalary %>" required>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Special Allowance (₹)</label>
+            <input type="number" name="specialAllowance" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.specialAllowance : salary.earnings.specialAllowance %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Transport Allowance (₹)</label>
+            <input type="number" name="transportAllowance" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.transportAllowance : salary.earnings.transportAllowance %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Medical Allowance (₹)</label>
+            <input type="number" name="medicalAllowance" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.medicalAllowance : salary.earnings.medicalAllowance %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Other Allowances (₹)</label>
+            <input type="number" name="otherAllowances" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.otherAllowances : salary.earnings.otherAllowances %>">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Other Deductions (₹)</label>
+            <input type="number" name="otherDeductions" class="form-control" min="0" step="0.01"
+              value="<%= locals.old ? locals.old.otherDeductions : salary.deductions.otherDeductions %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Effective From <span class="text-danger">*</span></label>
+            <input type="date" name="effectiveFrom" class="form-control"
+              value="<%= locals.old ? locals.old.effectiveFrom : (salary.effectiveFrom ? new Date(salary.effectiveFrom).toISOString().split('T')[0] : '') %>"
+              required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>Remarks</label>
+            <input type="text" name="remarks" class="form-control" maxlength="200"
+              placeholder="Reason for revision"
+              value="<%= locals.old ? locals.old.remarks : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="alert alert-info small">
+        <strong>Note:</strong> The current structure will be saved to revision history before updating.
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save mr-1"></i> Update Salary
+      </button>
+      <a href="/salary" class="btn btn-outline-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<!-- Revision History -->
+<% if (salary.revisionHistory && salary.revisionHistory.length > 0) { %>
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-secondary">
+      <i class="fas fa-history mr-1"></i> Revision History
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th>Basic</th>
+            <th>Gross</th>
+            <th>Net</th>
+            <th>Effective From</th>
+            <th>Effective To</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% salary.revisionHistory.slice().reverse().forEach(function(r) { %>
+          <tr>
+            <td>₹ <%= r.basicSalary.toLocaleString('en-IN') %></td>
+            <td>₹ <%= r.grossSalary.toLocaleString('en-IN') %></td>
+            <td>₹ <%= r.netSalary.toLocaleString('en-IN') %></td>
+            <td class="small"><%= r.effectiveFrom ? new Date(r.effectiveFrom).toLocaleDateString('en-IN') : '—' %></td>
+            <td class="small"><%= r.effectiveTo ? new Date(r.effectiveTo).toLocaleDateString('en-IN') : '—' %></td>
+            <td class="small text-muted"><%= r.remarks || '—' %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% } %>

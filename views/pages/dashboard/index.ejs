@@ -1,0 +1,625 @@
+<%
+  const monthNames = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const isAdminHr     = currentUser && ['admin','hr'].includes(currentUser.role);
+  const isAdminHrFin  = currentUser && ['admin','hr','finance'].includes(currentUser.role);
+  const isManager     = currentUser && ['admin','hr','manager'].includes(currentUser.role);
+%>
+
+<!-- ── Page Heading ────────────────────────────────────────────────────────── -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-tachometer-alt mr-2 text-primary"></i> Dashboard
+  </h1>
+  <span class="text-muted small">
+    Welcome back, <strong><%= currentUser ? currentUser.name : '' %></strong>
+  </span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW 1 — Key Metric Cards                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<div class="row">
+
+  <!-- Total Employees -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Employees</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.total %></div>
+          </div>
+          <div class="col-auto"><i class="fas fa-users fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Employees -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Employees</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.active %></div>
+          </div>
+          <div class="col-auto"><i class="fas fa-user-check fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Open Positions (admin/hr only) or Departments (others) -->
+  <% if (isAdminHr && openJobsCount !== null) { %>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Open Positions</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= openJobsCount %></div>
+            <a href="/recruitment?status=open" class="small text-info">View postings →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-briefcase fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Departments</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.departments %></div>
+          </div>
+          <div class="col-auto"><i class="fas fa-building fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Latest Payroll Status (admin/hr/finance) or New This Month (others) -->
+  <% if (isAdminHrFin && latestPayroll) { %>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-<%= latestPayroll.status === 'paid' ? 'success' : 'warning' %> shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-<%= latestPayroll.status === 'paid' ? 'success' : 'warning' %> text-uppercase mb-1">Payroll Status</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">
+              <%= monthNames[latestPayroll.month - 1] %> <%=latestPayroll.year%>
+            </div>
+            <span class="badge badge-<%= latestPayroll.status === 'paid' ? 'success' : 'primary' %> mt-1">
+              <%= latestPayroll.status.toUpperCase() %>
+            </span>
+          </div>
+          <div class="col-auto"><i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">New This Month</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.newThisMonth %></div>
+          </div>
+          <div class="col-auto"><i class="fas fa-user-plus fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW 2 — Alert / Approval Cards                                           -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<div class="row mb-2">
+
+  <!-- Today's Attendance (self) -->
+  <div class="col-lg-3 col-md-6 mb-4">
+    <div class="card shadow border-left-<%= todayAttendance && todayAttendance.checkIn ? (todayAttendance.checkOut ? 'success' : 'warning') : 'secondary' %> h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-uppercase mb-2
+          <%= todayAttendance && todayAttendance.checkIn ? (todayAttendance.checkOut ? 'text-success' : 'text-warning') : 'text-secondary' %>">
+          Today's Attendance
+        </div>
+        <% if (!todayAttendance || !todayAttendance.checkIn) { %>
+          <p class="text-muted small mb-2">Not checked in yet.</p>
+          <form action="/attendance/checkin" method="POST">
+            <button class="btn btn-success btn-sm"><i class="fas fa-sign-in-alt mr-1"></i> Check In</button>
+          </form>
+        <% } else if (!todayAttendance.checkOut) { %>
+          <p class="small mb-1">
+            <strong>In:</strong>
+            <%= new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) %>
+            <% if (todayAttendance.isLate) { %><span class="badge badge-warning ml-1">Late</span><% } %>
+          </p>
+          <form action="/attendance/checkout" method="POST">
+            <button class="btn btn-warning btn-sm"><i class="fas fa-sign-out-alt mr-1"></i> Check Out</button>
+          </form>
+        <% } else { %>
+          <p class="small mb-1"><strong>In:</strong> <%= new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) %></p>
+          <p class="small mb-1"><strong>Out:</strong> <%= new Date(todayAttendance.checkOut).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) %></p>
+          <p class="small mb-0 text-success font-weight-bold"><%= todayAttendance.workHours %> hrs worked</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Leave Approvals (manager/hr/admin) -->
+  <% if (isManager && pendingLeaveCount > 0) { %>
+  <div class="col-lg-3 col-md-6 mb-4">
+    <div class="card shadow border-left-warning h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Leave Approvals</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= pendingLeaveCount %></div>
+            <a href="/leaves/approvals" class="small text-warning">Review queue →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-tasks fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Pending Expense Approvals -->
+  <% if (pendingExpenseCount !== null && pendingExpenseCount > 0) { %>
+  <div class="col-lg-3 col-md-6 mb-4">
+    <div class="card shadow border-left-danger h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Pending Expense Approvals</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= pendingExpenseCount %></div>
+            <a href="/expense/approvals" class="small text-danger">Review expenses →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-wallet fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Expiring Documents (admin/hr) -->
+  <% if (isAdminHr && expiringDocCount > 0) { %>
+  <div class="col-lg-3 col-md-6 mb-4">
+    <div class="card shadow border-left-danger h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Expiring Documents</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= expiringDocCount %></div>
+            <a href="/documents?expiring=true" class="small text-danger">View documents →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-file-alt fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Today's Office Summary (admin/hr) -->
+  <% if (isAdminHr && todaySummary) { %>
+  <div class="col-lg-3 col-md-6 mb-4">
+    <div class="card shadow border-left-info h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-2">Today's Office</div>
+        <div class="row text-center">
+          <div class="col-4">
+            <div class="h5 mb-0 font-weight-bold text-success"><%= todaySummary.present %></div>
+            <div class="text-xs text-muted">Present</div>
+          </div>
+          <div class="col-4">
+            <div class="h5 mb-0 font-weight-bold text-danger"><%= todaySummary.absent %></div>
+            <div class="text-xs text-muted">Absent</div>
+          </div>
+          <div class="col-4">
+            <div class="h5 mb-0 font-weight-bold text-primary"><%= todaySummary.onLeave %></div>
+            <div class="text-xs text-muted">On Leave</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW 3 — Charts (admin/hr) + Timesheet/KPI (all)                          -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<% if (isAdminHr) { %>
+<div class="row mb-4">
+
+  <!-- Department Headcount Bar Chart -->
+  <div class="col-xl-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Department Headcount</h6>
+        <a href="/reports/headcount" class="btn btn-sm btn-outline-primary">View Report</a>
+      </div>
+      <div class="card-body">
+        <canvas id="deptChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6-Month Attendance Trend Line Chart -->
+  <div class="col-xl-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Attendance Trend (6 Months)</h6>
+        <a href="/reports/attendance" class="btn btn-sm btn-outline-primary">View Report</a>
+      </div>
+      <div class="card-body">
+        <canvas id="attendanceChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+<% } %>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW 4 — Role-specific widgets                                             -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<div class="row mb-3">
+
+  <!-- Timesheet summary (all) -->
+  <% if (weeklySummary) { %>
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow border-left-info h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">This Week's Timesheet</div>
+        <div class="h5 mb-1 font-weight-bold text-gray-800"><%= weeklySummary.totalHours %> hrs</div>
+        <div class="small mb-2">
+          <span class="text-success mr-2">Billable: <%= weeklySummary.billableHours %> hrs</span>
+          <span class="text-secondary">Non-Billable: <%= weeklySummary.nonBillableHours %> hrs</span>
+        </div>
+        <a href="/timesheet" class="small text-info">View timesheet →</a>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- KPI Progress (all) -->
+  <% if (kpiSummary) { %>
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow border-left-primary h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">My KPI Progress</div>
+        <div class="h5 mb-1 font-weight-bold text-gray-800"><%= kpiSummary.kpiScore %>%</div>
+        <div class="progress mb-2" style="height:6px;">
+          <div class="progress-bar bg-primary" style="width:<%= kpiSummary.kpiScore %>%"></div>
+        </div>
+        <div class="small text-muted mb-1"><%= kpiSummary.activeCount %> active KPI<%= kpiSummary.activeCount !== 1 ? 's' : '' %></div>
+        <a href="/performance" class="small text-primary">View KPIs →</a>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Latest Review Grade (all) -->
+  <% if (latestReviewGrade) { %>
+  <div class="col-lg-4 mb-4">
+    <%
+      const gradeColor = (latestReviewGrade.grade === 'Outstanding' || latestReviewGrade.grade === 'Exceeds Expectations')
+        ? 'success'
+        : latestReviewGrade.grade === 'Meets Expectations'
+          ? 'primary'
+          : 'warning';
+    %>
+    <div class="card shadow border-left-<%= gradeColor %> h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-<%= gradeColor %> text-uppercase mb-1">Latest Performance Grade</div>
+        <div class="h5 mb-1 font-weight-bold text-gray-800"><%= latestReviewGrade.grade %></div>
+        <div class="small text-muted mb-1"><%= latestReviewGrade.period %></div>
+        <a href="/performance/my-reviews" class="small">View reviews →</a>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Pending Timesheet Approvals (manager/hr/admin) -->
+  <% if (isManager && pendingTimesheetCount > 0) { %>
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow border-left-warning h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Timesheet Approvals</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= pendingTimesheetCount %></div>
+            <a href="/timesheet/report?status=submitted" class="small text-warning">Review entries →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-clock fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- My Pending Expenses (all) -->
+  <% if (myPendingExpenses > 0) { %>
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow border-left-warning h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">My Pending Expenses</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= myPendingExpenses %></div>
+            <a href="/expense" class="small text-warning">View expenses →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-wallet fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- HR/Admin: Offboarding in progress -->
+  <% if (isAdminHr && offboardingInProgressCount !== null) { %>
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow border-left-<%= offboardingInProgressCount > 0 ? 'danger' : 'secondary' %> h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-<%= offboardingInProgressCount > 0 ? 'danger' : 'secondary' %> text-uppercase mb-1">Offboarding In Progress</div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800"><%= offboardingInProgressCount %></div>
+            <a href="/offboarding" class="small">Manage offboarding →</a>
+          </div>
+          <div class="col-auto"><i class="fas fa-door-open fa-2x text-gray-300"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Finance: Payroll quick actions -->
+  <% if (isAdminHrFin && latestPayroll) { %>
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow border-left-success h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Latest Payroll</div>
+        <div class="h5 mb-1 font-weight-bold text-gray-800">
+          ₹ <%= latestPayroll.totalNetPay.toLocaleString('en-IN') %>
+        </div>
+        <div class="small mb-2 text-muted">
+          <%= monthNames[latestPayroll.month - 1] %> <%= latestPayroll.year %>
+          &nbsp;·&nbsp; <%= latestPayroll.totalEmployees %> employees
+        </div>
+        <a href="/payroll/<%= latestPayroll._id %>" class="small text-success">View details →</a>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW 5 — Recent Joinings + Upcoming Holidays                               -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<div class="row mb-4">
+
+  <!-- Recent Employees (last 5) -->
+  <div class="col-lg-7 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-user-plus mr-1"></i> Recent Joinings</h6>
+        <a href="/employees" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="thead-light">
+              <tr>
+                <th>Employee</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (stats.recent && stats.recent.length > 0) { %>
+                <% stats.recent.slice(0,5).forEach(emp => { %>
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <% if (emp.profilePhoto) { %>
+                        <img src="<%= emp.profilePhoto %>" class="rounded-circle mr-2" width="28" height="28" style="object-fit:cover;">
+                      <% } else { %>
+                        <div class="rounded-circle mr-2 d-flex align-items-center justify-content-center bg-primary text-white font-weight-bold"
+                          style="width:28px;height:28px;font-size:11px;flex-shrink:0;">
+                          <%= emp.firstName.charAt(0) %><%= emp.lastName.charAt(0) %>
+                        </div>
+                      <% } %>
+                      <div>
+                        <div class="small font-weight-bold"><%= emp.firstName %> <%= emp.lastName %></div>
+                        <div class="text-xs text-muted"><%= emp.employeeCode %></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="small"><%= emp.departmentId ? emp.departmentId.name : '—' %></td>
+                  <td>
+                    <span class="badge badge-<%= emp.status === 'active' ? 'success' : emp.status === 'resigned' ? 'warning' : 'danger' %>">
+                      <%= emp.status %>
+                    </span>
+                  </td>
+                  <td class="small text-muted"><%= emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString('en-IN') : '—' %></td>
+                </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" class="text-center py-3 text-muted">
+                    No employees yet. <a href="/employees/create">Add one</a>.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Holidays -->
+  <div class="col-lg-5 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-warning"><i class="fas fa-calendar-alt mr-1"></i> Upcoming Holidays</h6>
+        <a href="/holidays" class="btn btn-sm btn-outline-warning">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <% if (upcomingHolidays && upcomingHolidays.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="thead-light">
+              <tr><th>Holiday</th><th>Date</th><th>Type</th></tr>
+            </thead>
+            <tbody>
+              <% upcomingHolidays.forEach(h => { %>
+              <tr>
+                <td class="small font-weight-bold"><%= h.name %></td>
+                <td class="small text-muted">
+                  <%= new Date(h.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short' }) %>
+                  <span class="text-xs text-muted ml-1">(<%= dayNames[new Date(h.date).getDay()].slice(0,3) %>)</span>
+                </td>
+                <td>
+                  <span class="badge <%= h.type === 'public' ? 'badge-success' : 'badge-warning' %>"><%= h.type %></span>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+          <div class="text-center text-muted py-4 small">No upcoming holidays.</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW 6 — Latest Announcements                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<% if (latestAnnouncements && latestAnnouncements.length > 0) { %>
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-bullhorn mr-1"></i> Latest Announcements</h6>
+    <a href="/announcements" class="btn btn-sm btn-outline-primary">View All</a>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <% latestAnnouncements.forEach(a => { %>
+      <div class="col-md-4 mb-3">
+        <div class="border rounded p-3 h-100 <%= a.isRead ? 'bg-light' : '' %>">
+          <div class="d-flex align-items-center mb-2">
+            <div class="icon-circle <%= a.isPinned ? 'bg-warning' : 'bg-primary' %> mr-2"
+              style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;">
+              <i class="fas fa-<%= a.isPinned ? 'thumbtack' : 'bullhorn' %> text-white" style="font-size:10px;"></i>
+            </div>
+            <div class="font-weight-bold small <%= a.isRead ? 'text-muted' : '' %> flex-grow-1" style="line-height:1.2;">
+              <%= a.title %>
+            </div>
+          </div>
+          <div class="text-xs text-muted"><%= a.body.substring(0, 80) %><%= a.body.length > 80 ? '…' : '' %></div>
+          <div class="text-xs text-muted mt-2"><%= new Date(a.createdAt).toLocaleDateString('en-IN') %></div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- Chart.js Initialization                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<% if (isAdminHr) { %>
+<script>
+(function () {
+  const deptData = <%- deptHeadcountChartData %>;
+  const attData  = <%- attendanceTrendChartData %>;
+
+  // Department Headcount — horizontal bar
+  if (deptData.labels.length > 0) {
+    new Chart(document.getElementById('deptChart'), {
+      type: 'bar',
+      data: {
+        labels: deptData.labels,
+        datasets: [{
+          label: 'Headcount',
+          data: deptData.data,
+          backgroundColor: 'rgba(78,115,223,0.7)',
+          borderColor: 'rgba(78,115,223,1)',
+          borderWidth: 1,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1 } },
+          y: { ticks: { font: { size: 11 } } },
+        },
+      },
+    });
+  } else {
+    document.getElementById('deptChart').parentElement.innerHTML =
+      '<p class="text-center text-muted mt-4">No data yet.</p>';
+  }
+
+  // Attendance Trend — line with area fill
+  if (attData.labels.length > 0) {
+    new Chart(document.getElementById('attendanceChart'), {
+      type: 'line',
+      data: {
+        labels: attData.labels,
+        datasets: [{
+          label: 'Attendance %',
+          data: attData.data,
+          borderColor: 'rgba(28,200,138,1)',
+          backgroundColor: 'rgba(28,200,138,0.1)',
+          pointBackgroundColor: 'rgba(28,200,138,1)',
+          fill: true,
+          tension: 0.3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: false,
+            min: 0,
+            max: 100,
+            ticks: { callback: v => v + '%' },
+          },
+        },
+      },
+    });
+  } else {
+    document.getElementById('attendanceChart').parentElement.innerHTML =
+      '<p class="text-center text-muted mt-4">No data yet.</p>';
+  }
+})();
+</script>
+<% } %>

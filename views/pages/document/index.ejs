@@ -1,0 +1,133 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Documents</h1>
+  <a href="/documents/upload" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-upload fa-sm mr-1"></i> Upload Document
+  </a>
+</div>
+
+<!-- Expiring Documents Alert -->
+<% if (expiring && expiring.length > 0) { %>
+<div class="alert alert-warning">
+  <i class="fas fa-exclamation-triangle mr-2"></i>
+  <strong><%= expiring.length %> document(s)</strong> expiring within the next 30 days.
+  <ul class="mb-0 mt-1">
+    <% expiring.slice(0, 3).forEach(d => { %>
+      <li>
+        <%= d.employeeId ? `${d.employeeId.firstName} ${d.employeeId.lastName}` : '—' %> —
+        <%= d.title %> (<%= d.documentType %>) — expires <%= new Date(d.expiryDate).toLocaleDateString('en-IN') %>
+      </li>
+    <% }) %>
+    <% if (expiring.length > 3) { %><li>...and <%= expiring.length - 3 %> more</li><% } %>
+  </ul>
+</div>
+<% } %>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/documents" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Employee</label>
+        <select name="employeeId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% employees.forEach(e => { %>
+            <option value="<%= e._id %>" <%= filters.employeeId === String(e._id) ? 'selected' : '' %>><%= e.firstName %> <%= e.lastName %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Type</label>
+        <select name="documentType" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% documentTypes.forEach(t => { %>
+            <option value="<%= t %>" <%= filters.documentType === t ? 'selected' : '' %>><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="<%= filters.dateFrom || '' %>">
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="<%= filters.dateTo || '' %>">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mb-2">Filter</button>
+      <a href="/documents" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (documents.length === 0) { %>
+      <p class="text-center text-muted mt-3">No documents found.</p>
+    <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-sm">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th><th>Type</th><th>Title</th>
+            <th>Uploaded By</th><th>Date</th><th>Size</th>
+            <th>Expiry</th><th>Visible</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% documents.forEach(d => { %>
+            <%
+              const isExpiringSoon = d.expiryDate && new Date(d.expiryDate) <= new Date(Date.now() + 30*24*60*60*1000);
+            %>
+            <tr class="<%= isExpiringSoon ? 'table-warning' : '' %>">
+              <td>
+                <% if (d.employeeId) { %>
+                  <%= d.employeeId.firstName %> <%= d.employeeId.lastName %>
+                  <br><small class="text-muted"><%= d.employeeId.employeeCode %></small>
+                <% } else { %>—<% } %>
+              </td>
+              <td><span class="badge badge-info badge-sm"><%= d.documentType %></span></td>
+              <td><%= d.title %></td>
+              <td class="small"><%= d.uploadedBy ? `${d.uploadedBy.firstName} ${d.uploadedBy.lastName}` : '—' %></td>
+              <td class="small"><%= new Date(d.createdAt).toLocaleDateString('en-IN') %></td>
+              <td class="small"><%= d.fileSize ? d.fileSize + ' KB' : '—' %></td>
+              <td class="small <%= isExpiringSoon ? 'text-danger font-weight-bold' : '' %>">
+                <%= d.expiryDate ? new Date(d.expiryDate).toLocaleDateString('en-IN') : '—' %>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-secondary toggle-vis-btn"
+                  data-id="<%= d._id %>"
+                  onclick="toggleVisibility('<%= d._id %>', this)">
+                  <%= d.isVisibleToEmployee ? '👁 Yes' : '🔒 No' %>
+                </button>
+              </td>
+              <td>
+                <a href="/documents/<%= d._id %>/download" class="btn btn-info btn-sm">
+                  <i class="fas fa-download"></i>
+                </a>
+                <form method="POST" action="/documents/<%= d._id %>?_method=DELETE" class="d-inline"
+                  onsubmit="return confirm('Delete this document?')">
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+function toggleVisibility(id, btn) {
+  fetch('/documents/' + id + '/visibility', { method: 'PUT' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        location.reload();
+      }
+    });
+}
+</script>

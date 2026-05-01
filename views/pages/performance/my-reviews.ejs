@@ -1,0 +1,142 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-star mr-2 text-primary"></i>
+    <%= locals.singleView ? 'Performance Review' : 'My Reviews' %>
+  </h1>
+  <% if (!locals.singleView) { %>
+  <a href="/performance" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> My KPIs
+  </a>
+  <% } %>
+</div>
+
+<% if (!reviews || reviews.length === 0) { %>
+<div class="card shadow mb-4">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="fas fa-star fa-3x d-block mb-3 text-gray-300"></i>
+    No reviews available yet.
+  </div>
+</div>
+<% } %>
+
+<% const ratingLabels = {
+  productivity: 'Productivity',
+  quality: 'Quality of Work',
+  communication: 'Communication',
+  teamwork: 'Teamwork',
+  leadership: 'Leadership',
+  technical: 'Technical Skills'
+}; %>
+
+<% reviews.forEach(function(review) { %>
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center
+    <%= review.grade === 'Outstanding' || review.grade === 'Exceeds Expectations' ? 'bg-gradient-success text-white' :
+        review.grade === 'Meets Expectations' ? 'bg-gradient-info text-white' :
+        review.grade === 'Needs Improvement' ? 'bg-gradient-warning text-white' :
+        'bg-gradient-secondary text-white' %>">
+    <div>
+      <span class="font-weight-bold"><%= review.reviewPeriod %></span>
+      <span class="badge badge-light ml-2"><%= review.reviewType %></span>
+    </div>
+    <div class="d-flex align-items-center">
+      <span class="font-weight-bold mr-3">
+        <%= review.grade || '—' %>
+      </span>
+      <% if (review.status === 'acknowledged') { %>
+        <span class="badge badge-light">Acknowledged</span>
+      <% } else { %>
+        <span class="badge badge-warning">Pending Acknowledgement</span>
+      <% } %>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <p class="small text-muted mb-1">Reviewed by</p>
+        <p class="font-weight-bold">
+          <%= review.reviewerId ? review.reviewerId.firstName + ' ' + review.reviewerId.lastName : '—' %>
+        </p>
+      </div>
+      <div class="col-md-3">
+        <p class="small text-muted mb-1">Average Rating</p>
+        <p class="h5 font-weight-bold text-primary"><%= review.averageRating ? review.averageRating.toFixed(1) : '—' %> / 5</p>
+      </div>
+      <% if (review.kpiScore !== undefined && review.kpiScore !== null) { %>
+      <div class="col-md-3">
+        <p class="small text-muted mb-1">KPI Score</p>
+        <p class="h5 font-weight-bold text-success"><%= review.kpiScore %>%</p>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- Rating breakdown -->
+    <% if (review.ratings && Object.keys(review.ratings).length > 0) { %>
+    <div class="row mb-3">
+      <% Object.keys(ratingLabels).forEach(function(key) { %>
+        <% if (review.ratings[key] !== undefined && review.ratings[key] !== null) { %>
+        <div class="col-md-4 mb-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span><%= ratingLabels[key] %></span>
+            <strong><%= review.ratings[key] %> / 5</strong>
+          </div>
+          <div class="progress" style="height:6px;">
+            <div class="progress-bar
+              <%= review.ratings[key] >= 4 ? 'bg-success' : review.ratings[key] >= 3 ? 'bg-primary' : review.ratings[key] >= 2 ? 'bg-warning' : 'bg-danger' %>"
+              style="width:<%= (review.ratings[key] / 5 * 100) %>%"></div>
+          </div>
+        </div>
+        <% } %>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <!-- Comments -->
+    <% if (review.overallComment) { %>
+    <div class="mb-2">
+      <p class="small font-weight-bold text-muted mb-1">Overall Comment</p>
+      <p class="small"><%= review.overallComment %></p>
+    </div>
+    <% } %>
+
+    <div class="row">
+      <% if (review.strengthAreas) { %>
+      <div class="col-md-6">
+        <p class="small font-weight-bold text-success mb-1">
+          <i class="fas fa-thumbs-up mr-1"></i> Strengths
+        </p>
+        <p class="small"><%= review.strengthAreas %></p>
+      </div>
+      <% } %>
+      <% if (review.improvementAreas) { %>
+      <div class="col-md-6">
+        <p class="small font-weight-bold text-warning mb-1">
+          <i class="fas fa-arrow-up mr-1"></i> Areas for Improvement
+        </p>
+        <p class="small"><%= review.improvementAreas %></p>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (review.status !== 'acknowledged') { %>
+  <div class="card-footer">
+    <form action="/performance/review/<%= review._id %>/acknowledge?_method=PUT" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-outline-success"
+        onclick="return confirm('Acknowledge this review?')">
+        <i class="fas fa-check mr-1"></i> Acknowledge Review
+      </button>
+    </form>
+    <small class="text-muted ml-3">
+      Acknowledging confirms you have read the review.
+    </small>
+  </div>
+  <% } else { %>
+  <div class="card-footer text-muted small">
+    <i class="fas fa-check-circle text-success mr-1"></i>
+    Acknowledged on <%= review.acknowledgedAt ? new Date(review.acknowledgedAt).toLocaleDateString('en-IN') : '' %>
+  </div>
+  <% } %>
+</div>
+<% }) %>

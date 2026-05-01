@@ -1,0 +1,210 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800"><%= candidate.firstName %> <%= candidate.lastName %></h1>
+  <div>
+    <% if (candidate.stage === 'offer-accepted' && ['admin','hr'].includes(user.role) && !candidate.isConverted) { %>
+      <a href="/recruitment/candidate/<%= candidate._id %>/convert" class="btn btn-success btn-sm">Convert to Employee</a>
+    <% } %>
+    <a href="/recruitment/<%= candidate.jobId ? candidate.jobId._id : '' %>" class="btn btn-secondary btn-sm ml-1">Back to Job</a>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Candidate Info -->
+  <div class="col-xl-5">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Candidate Profile</h6>
+      </div>
+      <div class="card-body">
+        <p><strong>Job:</strong> <%= candidate.jobId ? `${candidate.jobId.jobCode} — ${candidate.jobId.title}` : '—' %></p>
+        <p><strong>Email:</strong> <%= candidate.email %></p>
+        <p><strong>Phone:</strong> <%= candidate.phone %></p>
+        <p><strong>Experience:</strong> <%= candidate.totalExperience %> yrs</p>
+        <p><strong>Current Company:</strong> <%= candidate.currentCompany || '—' %></p>
+        <p><strong>Notice Period:</strong> <%= candidate.noticePeriod %> days</p>
+        <p><strong>Source:</strong> <%= candidate.source %></p>
+        <p><strong>Current Stage:</strong> <span class="badge badge-primary badge-pill"><%= candidate.stage %></span></p>
+        <% if (candidate.isConverted) { %>
+          <p class="text-success"><strong>Converted:</strong>
+            <% if (candidate.convertedEmployeeId) { %>
+              <a href="/employees/<%= candidate.convertedEmployeeId._id %>">
+                <%= candidate.convertedEmployeeId.firstName %> <%= candidate.convertedEmployeeId.lastName %> (<%= candidate.convertedEmployeeId.employeeCode %>)
+              </a>
+            <% } else { %>Yes<% } %>
+          </p>
+        <% } %>
+        <% if (candidate.resumeUrl) { %>
+          <a href="<%= candidate.resumeUrl %>" target="_blank" class="btn btn-outline-primary btn-sm">View Resume</a>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Offer Details -->
+    <% if (candidate.offerDetails && candidate.offerDetails.offeredSalary) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">Offer Details</h6>
+      </div>
+      <div class="card-body">
+        <p><strong>Offered Salary:</strong> ₹<%= candidate.offerDetails.offeredSalary.toLocaleString('en-IN') %></p>
+        <p><strong>Joining Date:</strong> <%= candidate.offerDetails.joiningDate ? new Date(candidate.offerDetails.joiningDate).toLocaleDateString('en-IN') : '—' %></p>
+        <p><strong>Offer Sent:</strong> <%= candidate.offerDetails.offerSentAt ? new Date(candidate.offerDetails.offerSentAt).toLocaleDateString('en-IN') : '—' %></p>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Actions Panel -->
+  <div class="col-xl-7">
+    <!-- Move Stage -->
+    <% if (['admin','hr','manager'].includes(user.role) && !['joined','offer-rejected'].includes(candidate.stage)) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Move Stage</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/recruitment/candidate/<%= candidate._id %>/stage?_method=PUT">
+          <div class="row">
+            <div class="col-md-5">
+              <select name="stage" class="form-control form-control-sm">
+                <% stages.forEach(s => { %>
+                  <option value="<%= s %>" <%= candidate.stage === s ? 'selected' : '' %>><%= s %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <input type="text" name="note" class="form-control form-control-sm" placeholder="Note (optional)">
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-primary btn-sm btn-block">Move</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Schedule Interview -->
+    <% if (['admin','hr','manager'].includes(user.role)) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Schedule Interview</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/recruitment/candidate/<%= candidate._id %>/interview">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Date & Time</label>
+                <input type="datetime-local" name="scheduledAt" class="form-control form-control-sm" required>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Mode</label>
+                <select name="mode" class="form-control form-control-sm">
+                  <option value="in-person">In-Person</option>
+                  <option value="video">Video</option>
+                  <option value="phone">Phone</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <div class="form-group">
+                <label>Interviewers</label>
+                <select name="interviewers" class="form-control form-control-sm" multiple>
+                  <% employees.forEach(e => { %>
+                    <option value="<%= e._id %>"><%= e.firstName %> <%= e.lastName %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-info btn-sm">Schedule</button>
+        </form>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Send Offer -->
+    <% if (['admin','hr'].includes(user.role)) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">Send Offer</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/recruitment/candidate/<%= candidate._id %>/offer?_method=PUT">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Offered Salary (₹)</label>
+                <input type="number" name="offeredSalary" class="form-control form-control-sm" min="0" required>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Joining Date</label>
+                <input type="date" name="joiningDate" class="form-control form-control-sm">
+              </div>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button type="submit" class="btn btn-success btn-sm btn-block mb-3">Send Offer</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Interview History -->
+    <% if (candidate.interviews && candidate.interviews.length > 0) { %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Interviews</h6>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="thead-light">
+            <tr><th>Date/Time</th><th>Mode</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <% candidate.interviews.forEach(iv => { %>
+              <tr>
+                <td><%= new Date(iv.scheduledAt).toLocaleString('en-IN') %></td>
+                <td><%= iv.mode %></td>
+                <td><%= iv.result || 'pending' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Stage History -->
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Stage History</h6>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="thead-light">
+            <tr><th>Stage</th><th>Date</th><th>By</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <% (candidate.stageHistory || []).slice().reverse().forEach(h => { %>
+              <tr>
+                <td><span class="badge badge-primary"><%= h.stage %></span></td>
+                <td><%= new Date(h.changedAt).toLocaleDateString('en-IN') %></td>
+                <td><%= h.changedBy ? `${h.changedBy.firstName} ${h.changedBy.lastName}` : '—' %></td>
+                <td><%= h.note || '—' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

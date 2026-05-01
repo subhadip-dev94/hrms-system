@@ -1,0 +1,170 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-chart-bar mr-2 text-primary"></i> Monthly Attendance Report
+  </h1>
+  <a href="/attendance" class="btn btn-secondary btn-sm shadow-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<!-- Filter Form -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/attendance/report" class="form-row align-items-end">
+      <div class="form-group col-md-4 mb-2">
+        <label class="small font-weight-bold text-gray-600">Employee <span class="text-danger">*</span></label>
+        <select name="employeeId" class="form-control form-control-sm" required>
+          <option value="">Select Employee</option>
+          <% employees.forEach(function(emp) { %>
+            <option value="<%= emp._id %>"
+              <%= selectedEmployeeId === emp._id.toString() ? 'selected' : '' %>>
+              <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Month</label>
+        <select name="month" class="form-control form-control-sm">
+          <% const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']; %>
+          <% for (let m = 1; m <= 12; m++) { %>
+            <option value="<%= m %>" <%= m === selectedMonth ? 'selected' : '' %>><%= monthNames[m-1] %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-group col-md-2 mb-2">
+        <label class="small font-weight-bold text-gray-600">Year</label>
+        <select name="year" class="form-control form-control-sm">
+          <% for (let y = new Date().getFullYear(); y >= new Date().getFullYear() - 2; y--) { %>
+            <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-group col-md-2 mb-2">
+        <button type="submit" class="btn btn-primary btn-sm btn-block">
+          <i class="fas fa-search mr-1"></i> Generate Report
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (reportData && selectedEmployee) { %>
+
+<!-- Employee Info -->
+<div class="alert alert-info shadow-sm mb-4">
+  <strong><i class="fas fa-user mr-1"></i> <%= selectedEmployee.firstName %> <%= selectedEmployee.lastName %></strong>
+  &nbsp;|&nbsp; <span class="badge badge-secondary"><%= selectedEmployee.employeeCode %></span>
+  &nbsp;|&nbsp; <%= selectedEmployee.designation || 'N/A' %>
+  &nbsp;|&nbsp; Report for: <strong><%= monthNames[selectedMonth-1] %> <%= selectedYear %></strong>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body py-2 text-center">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Present</div>
+        <div class="h4 mb-0 font-weight-bold text-gray-800"><%= reportData.summary.present %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body py-2 text-center">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Late</div>
+        <div class="h4 mb-0 font-weight-bold text-gray-800"><%= reportData.summary.late %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-danger shadow py-2">
+      <div class="card-body py-2 text-center">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Absent</div>
+        <div class="h4 mb-0 font-weight-bold text-gray-800"><%= reportData.summary.absent %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body py-2 text-center">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">On Leave</div>
+        <div class="h4 mb-0 font-weight-bold text-gray-800"><%= reportData.summary.onLeave %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body py-2 text-center">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Work Hrs</div>
+        <div class="h4 mb-0 font-weight-bold text-gray-800"><%= reportData.summary.totalWorkHours %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-secondary shadow py-2">
+      <div class="card-body py-2 text-center">
+        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Overtime</div>
+        <div class="h4 mb-0 font-weight-bold text-gray-800"><%= reportData.summary.totalOvertime %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Records -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Detailed Records</h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm table-hover table-datatable" width="100%">
+        <thead class="thead-light">
+          <tr>
+            <th>Date</th>
+            <th>Day</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Hours</th>
+            <th>OT</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; %>
+          <% reportData.records.forEach(function(r) { %>
+            <tr class="<%= r.status === 'absent' ? 'table-danger' : (r.status === 'on-leave' ? 'table-warning' : '') %>">
+              <td class="small font-weight-bold">
+                <%= new Date(r.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short' }) %>
+              </td>
+              <td class="small text-muted"><%= dayNames[new Date(r.date).getDay()] %></td>
+              <td class="small"><%= r.checkIn ? new Date(r.checkIn).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) : '—' %></td>
+              <td class="small"><%= r.checkOut ? new Date(r.checkOut).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) : '—' %></td>
+              <td class="small"><%= r.workHours ? r.workHours + ' h' : '—' %></td>
+              <td class="small text-info"><%= r.overtime ? r.overtime + ' h' : '—' %></td>
+              <td>
+                <% if (r.status === 'present') { %><span class="badge badge-success">Present</span>
+                <% } else if (r.status === 'late') { %><span class="badge badge-warning">Late</span>
+                <% } else if (r.status === 'absent') { %><span class="badge badge-danger">Absent</span>
+                <% } else if (r.status === 'half-day') { %><span class="badge badge-info">Half Day</span>
+                <% } else if (r.status === 'on-leave') { %><span class="badge badge-primary">On Leave</span>
+                <% } else if (r.status === 'holiday') { %><span class="badge badge-secondary">Holiday</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<% } else { %>
+<div class="card shadow mb-4">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="fas fa-chart-bar fa-3x d-block mb-3 text-gray-300"></i>
+    <p class="mb-0">Select an employee and month above to generate the report.</p>
+  </div>
+</div>
+<% } %>

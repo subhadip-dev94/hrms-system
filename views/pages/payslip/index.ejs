@@ -1,0 +1,67 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-receipt mr-2 text-primary"></i> My Payslips
+  </h1>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover mb-0" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Period</th>
+            <th>Days Present</th>
+            <th>Gross Earnings</th>
+            <th>Deductions</th>
+            <th>Net Pay</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (payslips && payslips.length > 0) { %>
+            <% payslips.forEach(function(ps) { %>
+            <tr>
+              <td class="font-weight-bold">
+                <%= getMonthName(ps.month) %> <%= ps.year %>
+              </td>
+              <td><%= ps.attendance.presentDays %> / <%= ps.attendance.workingDays %></td>
+              <td class="text-success">₹ <%= ps.earnings.grossEarnings.toLocaleString('en-IN') %></td>
+              <td class="text-danger">₹ <%= ps.deductions.totalDeductions.toLocaleString('en-IN') %></td>
+              <td class="font-weight-bold">₹ <%= ps.netPay.toLocaleString('en-IN') %></td>
+              <td>
+                <% if (ps.status === 'emailed') { %>
+                  <span class="badge badge-info">Emailed</span>
+                <% } else if (ps.status === 'downloaded') { %>
+                  <span class="badge badge-success">Downloaded</span>
+                <% } else { %>
+                  <span class="badge badge-secondary">Generated</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/payslips/<%= ps._id %>" class="btn btn-sm btn-outline-info mr-1">
+                  <i class="fas fa-eye mr-1"></i> View
+                </a>
+                <% if (ps.pdfPath) { %>
+                <a href="/payslips/<%= ps._id %>/download" class="btn btn-sm btn-outline-success">
+                  <i class="fas fa-download mr-1"></i> PDF
+                </a>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">
+              <i class="fas fa-receipt fa-2x d-block mb-2"></i>
+              No payslips available yet.
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,146 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Headcount & Turnover Report</h1>
+  <div>
+    <a href="/reports/headcount/export?<%= new URLSearchParams(filters).toString() %>" class="btn btn-danger btn-sm">
+      <i class="fas fa-download mr-1"></i> Export PDF
+    </a>
+    <a href="/reports" class="btn btn-secondary btn-sm ml-1">Back</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/reports/headcount" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% departments.forEach(d => { %>
+            <option value="<%= d._id %>" <%= filters.departmentId === String(d._id) ? 'selected' : '' %>><%= d.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">From</label>
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="<%= filters.dateFrom ? new Date(filters.dateFrom).toISOString().split('T')[0] : '' %>">
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">To</label>
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="<%= filters.dateTo ? new Date(filters.dateTo).toISOString().split('T')[0] : '' %>">
+      </div>
+      <button type="submit" class="btn btn-danger btn-sm mb-2">Apply</button>
+      <a href="/reports/headcount" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.totalHeadcount %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.activeHeadcount %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">New Joins</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.newJoinings %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Exits</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.exits %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-<%= summary.turnoverRate > 10 ? 'danger' : 'success' %> shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-<%= summary.turnoverRate > 10 ? 'danger' : 'success' %> text-uppercase mb-1">Turnover</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.turnoverRate %>%</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 mb-3">
+    <div class="card border-left-secondary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Avg Tenure</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.avgTenure %> yrs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Dept Breakdown -->
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Department Headcount</h6>
+      </div>
+      <div class="card-body">
+        <% summary.deptBreakdown.forEach(d => { %>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small font-weight-bold"><%= d.dept %></span>
+            <span class="badge badge-primary badge-pill"><%= d.count %></span>
+          </div>
+          <div class="progress mb-2" style="height:5px;">
+            <div class="progress-bar" style="width:<%= summary.activeHeadcount > 0 ? Math.round((d.count/summary.activeHeadcount)*100) : 0 %>%"></div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gender + Top Designations -->
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow mb-3">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Gender Distribution</h6>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <% Object.entries(summary.genderMap).forEach(([g, c]) => { %>
+            <div class="col">
+              <div class="h4 font-weight-bold"><%= c %></div>
+              <div class="small text-muted text-capitalize"><%= g %></div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Top Designations</h6>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <% summary.designationBreakdown.slice(0, 6).forEach(d => { %>
+            <tr>
+              <td class="small"><%= d.designation %></td>
+              <td class="text-right"><span class="badge badge-secondary"><%= d.count %></span></td>
+            </tr>
+          <% }) %>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

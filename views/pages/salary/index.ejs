@@ -1,0 +1,58 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-money-bill-wave mr-2 text-primary"></i> Salary Structures
+  </h1>
+  <a href="/salary/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus fa-sm mr-1"></i> Assign Salary
+  </a>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-datatable" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th>
+            <th>Basic Salary</th>
+            <th>HRA</th>
+            <th>Gross Salary</th>
+            <th>Total Deductions</th>
+            <th>Net Salary</th>
+            <th>Effective From</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% salaries.forEach(function(s) { %>
+            <tr>
+              <td>
+                <div class="font-weight-bold">
+                  <%= s.employeeId ? s.employeeId.firstName + ' ' + s.employeeId.lastName : '—' %>
+                </div>
+                <small class="text-muted">
+                  <%= s.employeeId ? s.employeeId.employeeCode : '' %>
+                </small>
+              </td>
+              <td>₹ <%= s.earnings.basicSalary.toLocaleString('en-IN') %></td>
+              <td>₹ <%= s.earnings.hra.toLocaleString('en-IN') %></td>
+              <td class="font-weight-bold text-success">₹ <%= s.grossSalary.toLocaleString('en-IN') %></td>
+              <td class="text-danger">
+                ₹ <%= (s.deductions.pf + s.deductions.esi + s.deductions.tax + (s.deductions.otherDeductions || 0)).toLocaleString('en-IN') %>
+              </td>
+              <td class="font-weight-bold">₹ <%= s.netSalary.toLocaleString('en-IN') %></td>
+              <td class="small"><%= s.effectiveFrom ? new Date(s.effectiveFrom).toLocaleDateString('en-IN') : '—' %></td>
+              <td>
+                <a href="/salary/<%= s.employeeId ? s.employeeId._id : '' %>/edit"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

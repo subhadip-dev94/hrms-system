@@ -1,0 +1,105 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">My Expenses</h1>
+  <a href="/expense/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus fa-sm text-white-50"></i> Submit Expense
+  </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+  <div class="col-xl-2 col-md-4 mb-3">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">₹<%= (summary.total || 0).toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 mb-3">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= summary.pending %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 mb-3">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Approved</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= summary.approved %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 mb-3">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Paid</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= summary.paid %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-2 col-md-4 mb-3">
+    <div class="card border-left-danger shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= summary.rejected %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Expense List -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (expenses.length === 0) { %>
+      <p class="text-center text-muted mt-3">No expenses found. <a href="/expense/create">Submit your first expense</a>.</p>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="thead-light">
+            <tr>
+              <th>Code</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses.forEach(e => { %>
+              <%
+                const statusColor = {
+                  draft: 'secondary', submitted: 'warning', manager_approved: 'info',
+                  approved: 'primary', rejected: 'danger', paid: 'success'
+                };
+              %>
+              <tr>
+                <td><code><%= e.expenseCode %></code></td>
+                <td><a href="/expense/<%= e._id %>"><%= e.title %></a></td>
+                <td><span class="badge badge-light border"><%= e.category %></span></td>
+                <td>₹<%= e.amount.toLocaleString('en-IN') %></td>
+                <td><%= new Date(e.expenseDate).toLocaleDateString('en-IN') %></td>
+                <td><span class="badge badge-<%= statusColor[e.status] || 'secondary' %>"><%= e.status %></span></td>
+                <td>
+                  <a href="/expense/<%= e._id %>" class="btn btn-info btn-sm">View</a>
+                  <% if (e.status === 'draft') { %>
+                    <a href="/expense/<%= e._id %>/edit" class="btn btn-warning btn-sm">Edit</a>
+                    <form method="POST" action="/expense/<%= e._id %>?_method=DELETE" class="d-inline"
+                      onsubmit="return confirm('Delete this expense?')">
+                      <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

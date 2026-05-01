@@ -1,0 +1,79 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-edit mr-2 text-primary"></i> Edit Timesheet Entry
+  </h1>
+  <a href="/timesheet" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+  </a>
+</div>
+
+<% if (locals.errors && errors.length > 0) { %>
+<div class="alert alert-danger">
+  <ul class="mb-0">
+    <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+  </ul>
+</div>
+<% } %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+          Entry for <%= new Date(entry.date).toLocaleDateString('en-IN', {weekday:'long', day:'2-digit', month:'short', year:'numeric'}) %>
+        </h6>
+      </div>
+      <div class="card-body">
+        <form action="/timesheet/<%= entry._id %>?_method=PUT" method="POST">
+
+          <!-- Date is read-only when editing -->
+          <div class="form-group">
+            <label>Date</label>
+            <input type="text" class="form-control bg-light" readonly
+              value="<%= new Date(entry.date).toLocaleDateString('en-IN', {weekday:'long',day:'2-digit',month:'short',year:'numeric'}) %>">
+            <input type="hidden" name="date" value="<%= new Date(entry.date).toISOString().split('T')[0] %>">
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Project Name <span class="text-danger">*</span></label>
+                <input type="text" name="projectName" class="form-control"
+                  value="<%= locals.old ? locals.old.projectName : entry.projectName %>"
+                  maxlength="100" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Hours <span class="text-danger">*</span></label>
+                <input type="number" name="hours" class="form-control"
+                  min="0.5" max="24" step="0.5"
+                  value="<%= locals.old ? locals.old.hours : entry.hours %>" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Task Description <span class="text-danger">*</span></label>
+            <textarea name="taskDescription" class="form-control" rows="3"
+              maxlength="500" required><%= locals.old ? locals.old.taskDescription : entry.taskDescription %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Work Type <span class="text-danger">*</span></label>
+            <select name="workType" class="form-control" required>
+              <option value="billable" <%= (locals.old ? locals.old.workType : entry.workType) === 'billable' ? 'selected' : '' %>>Billable</option>
+              <option value="non-billable" <%= (locals.old ? locals.old.workType : entry.workType) === 'non-billable' ? 'selected' : '' %>>Non-Billable</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save mr-1"></i> Update Entry
+          </button>
+          <a href="/timesheet" class="btn btn-outline-secondary ml-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

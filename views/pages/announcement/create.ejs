@@ -1,0 +1,63 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Create Announcement</h1>
+  <a href="/announcements" class="btn btn-secondary btn-sm">Back</a>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/announcements">
+      <div class="form-group">
+        <label>Title <span class="text-danger">*</span></label>
+        <input type="text" name="title" class="form-control" required
+          value="<%= typeof old !== 'undefined' ? old.title || '' : '' %>">
+      </div>
+
+      <div class="form-group">
+        <label>Body <span class="text-danger">*</span></label>
+        <textarea name="body" class="form-control" rows="5" required><%= typeof old !== 'undefined' ? old.body || '' : '' %></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col-md-5">
+          <div class="form-group">
+            <label>Target Roles <small class="text-muted">(hold Ctrl/Cmd for multiple)</small></label>
+            <select name="targetRoles" class="form-control" multiple size="7">
+              <% roles.forEach(r => { %>
+                <% const selected = typeof old !== 'undefined' && old.targetRoles &&
+                  ([].concat(old.targetRoles)).includes(r); %>
+                <option value="<%= r %>" <%= selected ? 'selected' : '' %>><%= r %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Expires At <small class="text-muted">(optional)</small></label>
+            <input type="date" name="expiresAt" class="form-control"
+              value="<%= typeof old !== 'undefined' ? old.expiresAt || '' : '' %>">
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="isPinned" name="isPinned" value="true"
+                <%= typeof old !== 'undefined' && old.isPinned === 'true' ? 'checked' : '' %>>
+              <label class="custom-control-label" for="isPinned">Pin this announcement</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Create Announcement</button>
+      <a href="/announcements" class="btn btn-secondary ml-2">Cancel</a>
+    </form>
+  </div>
+</div>

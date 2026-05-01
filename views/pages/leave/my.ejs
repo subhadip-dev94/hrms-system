@@ -1,0 +1,159 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-plane-departure mr-2 text-primary"></i> My Leaves
+  </h1>
+  <a href="/leaves/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus fa-sm mr-1"></i> Apply Leave
+  </a>
+</div>
+
+<!-- ── Leave Balance Cards ──────────────────────────────────────────────────── -->
+<% if (balance) { %>
+<div class="row mb-4">
+  <div class="col-md-4 mb-3">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">Casual Leave</div>
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="h4 mb-0 font-weight-bold text-gray-800"><%= balance.casual.remaining %><span class="text-muted small"> / <%= balance.casual.total %></span></div>
+            <small class="text-muted">Used: <%= balance.casual.used %> days</small>
+          </div>
+          <div class="col-auto"><i class="fas fa-umbrella-beach fa-2x text-gray-300"></i></div>
+        </div>
+        <div class="progress mt-2" style="height:5px;">
+          <div class="progress-bar bg-primary" style="width:<%= balance.casual.total > 0 ? Math.round((balance.casual.remaining/balance.casual.total)*100) : 0 %>%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card border-left-danger shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-2">Sick Leave</div>
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="h4 mb-0 font-weight-bold text-gray-800"><%= balance.sick.remaining %><span class="text-muted small"> / <%= balance.sick.total %></span></div>
+            <small class="text-muted">Used: <%= balance.sick.used %> days</small>
+          </div>
+          <div class="col-auto"><i class="fas fa-briefcase-medical fa-2x text-gray-300"></i></div>
+        </div>
+        <div class="progress mt-2" style="height:5px;">
+          <div class="progress-bar bg-danger" style="width:<%= balance.sick.total > 0 ? Math.round((balance.sick.remaining/balance.sick.total)*100) : 0 %>%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-2">Earned Leave</div>
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="h4 mb-0 font-weight-bold text-gray-800"><%= balance.earned.remaining %><span class="text-muted small"> / <%= balance.earned.total %></span></div>
+            <small class="text-muted">Used: <%= balance.earned.used %> days</small>
+          </div>
+          <div class="col-auto"><i class="fas fa-star fa-2x text-gray-300"></i></div>
+        </div>
+        <div class="progress mt-2" style="height:5px;">
+          <div class="progress-bar bg-success" style="width:<%= balance.earned.total > 0 ? Math.round((balance.earned.remaining/balance.earned.total)*100) : 0 %>%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } else { %>
+<div class="alert alert-warning mb-4">
+  <i class="fas fa-exclamation-triangle mr-2"></i>
+  Leave balance not initialised. Please contact HR.
+</div>
+<% } %>
+
+<!-- ── Leave History Table ─────────────────────────────────────────────────── -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">
+      Leave History
+      <span class="badge badge-primary ml-2"><%= leaves.length %></span>
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-datatable" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Type</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Applied On</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leaves.forEach(function(leave) { %>
+            <tr>
+              <td>
+                <span class="badge badge-light border text-capitalize font-weight-bold px-2">
+                  <%= leave.leaveType %>
+                </span>
+              </td>
+              <td class="small font-weight-bold">
+                <%= new Date(leave.startDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+              <td class="small font-weight-bold">
+                <%= new Date(leave.endDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+              <td class="text-center">
+                <span class="badge badge-primary"><%= leave.totalDays %></span>
+              </td>
+              <td class="small text-muted" style="max-width:200px;">
+                <%= leave.reason.length > 60 ? leave.reason.substring(0,60) + '...' : leave.reason %>
+              </td>
+              <td>
+                <% if (leave.status === 'pending') { %>
+                  <span class="badge badge-warning px-2">Pending</span>
+                <% } else if (leave.status === 'manager_approved') { %>
+                  <span class="badge badge-info px-2">Mgr Approved</span>
+                <% } else if (leave.status === 'approved') { %>
+                  <span class="badge badge-success px-2">Approved</span>
+                <% } else if (leave.status === 'rejected') { %>
+                  <span class="badge badge-danger px-2">Rejected</span>
+                <% } else if (leave.status === 'cancelled') { %>
+                  <span class="badge badge-secondary px-2">Cancelled</span>
+                <% } %>
+              </td>
+              <td class="small text-muted">
+                <%= new Date(leave.appliedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </td>
+              <td>
+                <% if (leave.status === 'pending' || leave.status === 'manager_approved') { %>
+                  <form action="/leaves/<%= leave._id %>/cancel?_method=PUT" method="POST"
+                        style="display:inline;"
+                        onsubmit="return confirm('Cancel this leave application?')">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-times mr-1"></i> Cancel
+                    </button>
+                  </form>
+                <% } else if (leave.status === 'approved') { %>
+                  <form action="/leaves/<%= leave._id %>/cancel?_method=PUT" method="POST"
+                        style="display:inline;"
+                        onsubmit="return confirm('Cancel this approved leave? Balance will be restored if leave has not started.')">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                      <i class="fas fa-ban mr-1"></i> Cancel
+                    </button>
+                  </form>
+                <% } else { %>
+                  <span class="text-muted small">—</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

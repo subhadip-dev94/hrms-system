@@ -1,0 +1,71 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Expense Approvals</h1>
+  <% if (['admin','hr','finance'].includes(user.role)) { %>
+    <a href="/expense/all" class="btn btn-secondary btn-sm">All Expenses</a>
+  <% } %>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <% if (expenses.length === 0) { %>
+      <p class="text-center text-muted mt-3">No pending expenses.</p>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="thead-light">
+            <tr>
+              <th>Code</th>
+              <th>Employee</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Manager Note</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses.forEach(e => { %>
+              <%
+                const statusColor = {
+                  submitted: 'warning', manager_approved: 'info'
+                };
+              %>
+              <tr>
+                <td><code><%= e.expenseCode %></code></td>
+                <td>
+                  <% if (e.employeeId && e.employeeId.firstName) { %>
+                    <%= e.employeeId.firstName %> <%= e.employeeId.lastName %><br>
+                    <small class="text-muted"><%= e.employeeId.employeeCode %></small>
+                  <% } else { %>—<% } %>
+                </td>
+                <td><a href="/expense/<%= e._id %>"><%= e.title %></a></td>
+                <td><span class="badge badge-light border"><%= e.category %></span></td>
+                <td>₹<%= e.amount.toLocaleString('en-IN') %></td>
+                <td><%= new Date(e.expenseDate).toLocaleDateString('en-IN') %></td>
+                <td><span class="badge badge-<%= statusColor[e.status] || 'secondary' %>"><%= e.status %></span></td>
+                <td>
+                  <% if (e.managerAction && e.managerAction.actionBy) { %>
+                    <small><%= e.managerAction.actionBy.firstName %>: <%= e.managerAction.comment || '—' %></small>
+                  <% } else { %>—<% } %>
+                </td>
+                <td>
+                  <form method="POST" action="/expense/<%= e._id %>/approve" class="d-inline">
+                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                  </form>
+                  <form method="POST" action="/expense/<%= e._id %>/reject" class="d-inline"
+                    onsubmit="return confirm('Reject this expense?')">
+                    <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>

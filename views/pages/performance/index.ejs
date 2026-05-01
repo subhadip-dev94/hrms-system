@@ -1,0 +1,142 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-bullseye mr-2 text-primary"></i> My KPIs
+  </h1>
+  <% if (currentUser && ['admin','hr','manager'].includes(currentUser.role)) { %>
+  <a href="/performance/create" class="btn btn-primary btn-sm shadow-sm">
+    <i class="fas fa-plus fa-sm mr-1"></i> Assign KPI
+  </a>
+  <% } %>
+</div>
+
+<!-- Overall Score + Latest Grade -->
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Overall KPI Score</div>
+        <div class="h4 mb-1 font-weight-bold text-gray-800"><%= kpiScore %>%</div>
+        <div class="progress" style="height:8px;">
+          <div class="progress-bar bg-primary" style="width:<%= kpiScore %>%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-left-<%= latestGrade ? (latestGrade.grade === 'Outstanding' || latestGrade.grade === 'Exceeds Expectations' ? 'success' : latestGrade.grade === 'Meets Expectations' ? 'info' : 'warning') : 'secondary' %> shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-uppercase mb-1
+          <%= latestGrade ? (latestGrade.grade === 'Outstanding' || latestGrade.grade === 'Exceeds Expectations' ? 'text-success' : latestGrade.grade === 'Meets Expectations' ? 'text-info' : 'text-warning') : 'text-secondary' %>">
+          Latest Review Grade
+        </div>
+        <div class="h5 mb-1 font-weight-bold text-gray-800">
+          <%= latestGrade ? latestGrade.grade : 'No review yet' %>
+        </div>
+        <% if (latestGrade) { %>
+        <small class="text-muted"><%= latestGrade.period %></small>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active KPIs</div>
+        <div class="h5 mb-1 font-weight-bold text-gray-800"><%= kpis.filter(k => k.status === 'active').length %></div>
+        <a href="/performance/my-reviews" class="small text-info">View all reviews →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<% if (kpis.length === 0) { %>
+<div class="card shadow mb-4">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="fas fa-bullseye fa-3x d-block mb-3 text-gray-300"></i>
+    No KPIs assigned yet.
+    <% if (currentUser && ['admin','hr','manager'].includes(currentUser.role)) { %>
+    <a href="/performance/create">Assign the first KPI</a>.
+    <% } %>
+  </div>
+</div>
+<% } else { %>
+<div class="row">
+  <% kpis.forEach(function(kpi) { %>
+  <div class="col-lg-4 col-md-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <span class="font-weight-bold text-primary small"><%= kpi.title %></span>
+        <% if (kpi.status === 'active') { %>
+          <span class="badge badge-success">Active</span>
+        <% } else if (kpi.status === 'completed') { %>
+          <span class="badge badge-primary">Completed</span>
+        <% } else { %>
+          <span class="badge badge-secondary">Cancelled</span>
+        <% } %>
+      </div>
+      <div class="card-body">
+        <div class="mb-2">
+          <span class="badge badge-light border mr-1"><%= kpi.category %></span>
+          <span class="badge badge-secondary">Weight: <%= kpi.weightage %>%</span>
+          <% if (kpi.quarter) { %><span class="badge badge-info ml-1"><%= kpi.quarter %> <%= kpi.year %></span><% } %>
+        </div>
+        <p class="small text-muted mb-2"><%= kpi.description || '' %></p>
+
+        <!-- Progress -->
+        <div class="mb-1 d-flex justify-content-between small">
+          <span>Progress</span>
+          <span class="font-weight-bold"><%= kpi.progress %>%</span>
+        </div>
+        <div class="progress mb-2" style="height:12px;">
+          <div class="progress-bar
+            <%= kpi.progress >= 100 ? 'bg-success' : kpi.progress >= 60 ? 'bg-primary' : kpi.progress >= 30 ? 'bg-warning' : 'bg-danger' %>"
+            style="width:<%= kpi.progress %>%"></div>
+        </div>
+        <div class="small text-muted mb-3">
+          <strong><%= kpi.currentValue %></strong> / <%= kpi.targetValue %> <%= kpi.unit %>
+        </div>
+
+        <div class="small text-muted mb-3">
+          <i class="fas fa-calendar-alt mr-1"></i>
+          <%= new Date(kpi.periodStart).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) %>
+          → <%= new Date(kpi.periodEnd).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) %>
+        </div>
+
+        <!-- Update progress form -->
+        <% if (kpi.status === 'active') { %>
+        <form action="/performance/<%= kpi._id %>/progress?_method=PUT" method="POST" class="mt-auto">
+          <div class="input-group input-group-sm">
+            <input type="number" name="currentValue" class="form-control"
+              value="<%= kpi.currentValue %>" min="0" step="0.1"
+              placeholder="New value">
+            <input type="text" name="note" class="form-control"
+              placeholder="Note (optional)">
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-sync-alt"></i> Update
+              </button>
+            </div>
+          </div>
+        </form>
+        <% } %>
+      </div>
+      <% if (currentUser && ['admin','hr','manager'].includes(currentUser.role)) { %>
+      <div class="card-footer d-flex justify-content-end">
+        <a href="/performance/<%= kpi._id %>/edit" class="btn btn-sm btn-outline-secondary mr-2">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        <form action="/performance/<%= kpi._id %>?_method=DELETE" method="POST" class="d-inline"
+          onsubmit="return confirm('Cancel this KPI?')">
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        </form>
+      </div>
+      <% } %>
+    </div>
+  </div>
+  <% }) %>
+</div>
+<% } %>

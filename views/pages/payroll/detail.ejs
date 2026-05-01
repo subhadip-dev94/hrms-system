@@ -1,0 +1,148 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>
+    Payroll — <%= getMonthName(payroll.month) %> <%= payroll.year %>
+  </h1>
+  <div>
+    <% if (payroll.status === 'processed') { %>
+    <form action="/payroll/<%= payroll._id %>/mark-paid" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-success btn-sm shadow-sm mr-2"
+        onclick="return confirm('Mark this payroll as paid?')">
+        <i class="fas fa-check-circle mr-1"></i> Mark as Paid
+      </button>
+    </form>
+    <% } %>
+    <a href="/payroll" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left fa-sm mr-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Employees</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= payroll.totalEmployees %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Gross</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ <%= payroll.totalGross.toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-left-danger shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Deductions</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ <%= payroll.totalDeductions.toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Net Pay</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">₹ <%= payroll.totalNetPay.toLocaleString('en-IN') %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status Badge -->
+<div class="mb-3">
+  Status:
+  <% if (payroll.status === 'paid') { %>
+    <span class="badge badge-success badge-lg">Paid</span>
+  <% } else if (payroll.status === 'processed') { %>
+    <span class="badge badge-primary badge-lg">Processed</span>
+  <% } else { %>
+    <span class="badge badge-secondary badge-lg">Draft</span>
+  <% } %>
+  <span class="text-muted small ml-2">
+    Processed by
+    <%= payroll.processedBy ? payroll.processedBy.firstName + ' ' + payroll.processedBy.lastName : '—' %>
+    on <%= payroll.processedAt ? new Date(payroll.processedAt).toLocaleDateString('en-IN') : '—' %>
+  </span>
+</div>
+
+<!-- Payslips Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">
+      <i class="fas fa-receipt mr-1"></i> Individual Payslips
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover mb-0" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th>
+            <th>Present Days</th>
+            <th>Absent Days</th>
+            <th>Gross</th>
+            <th>Deductions</th>
+            <th>Net Pay</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (payslips && payslips.length > 0) { %>
+            <% payslips.forEach(function(ps) { %>
+            <tr>
+              <td>
+                <div class="font-weight-bold small">
+                  <%= ps.employeeId ? ps.employeeId.firstName + ' ' + ps.employeeId.lastName : '—' %>
+                </div>
+                <small class="text-muted"><%= ps.employeeId ? ps.employeeId.employeeCode : '' %></small>
+              </td>
+              <td><%= ps.attendance.presentDays %> / <%= ps.attendance.workingDays %></td>
+              <td>
+                <% if (ps.attendance.absentDays > 0) { %>
+                  <span class="text-danger"><%= ps.attendance.absentDays %></span>
+                <% } else { %>
+                  <span class="text-success">0</span>
+                <% } %>
+              </td>
+              <td class="text-success">₹ <%= ps.earnings.grossEarnings.toLocaleString('en-IN') %></td>
+              <td class="text-danger">₹ <%= ps.deductions.totalDeductions.toLocaleString('en-IN') %></td>
+              <td class="font-weight-bold">₹ <%= ps.netPay.toLocaleString('en-IN') %></td>
+              <td>
+                <% if (ps.status === 'emailed') { %>
+                  <span class="badge badge-info">Emailed</span>
+                <% } else if (ps.status === 'downloaded') { %>
+                  <span class="badge badge-success">Downloaded</span>
+                <% } else { %>
+                  <span class="badge badge-secondary">Generated</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/payslips/<%= ps._id %>" class="btn btn-sm btn-outline-info mr-1">
+                  <i class="fas fa-eye"></i>
+                </a>
+                <% if (ps.pdfPath) { %>
+                <a href="/payslips/<%= ps._id %>/download" class="btn btn-sm btn-outline-success">
+                  <i class="fas fa-download"></i>
+                </a>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+          <tr>
+            <td colspan="8" class="text-center py-3 text-muted">No payslips generated yet.</td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

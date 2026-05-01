@@ -1,0 +1,198 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-chart-bar mr-2 text-primary"></i> Timesheet Report
+  </h1>
+</div>
+
+<!-- Filter Form -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+  </div>
+  <div class="card-body">
+    <form action="/timesheet/report" method="GET">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Employee</label>
+            <select name="employeeId" class="form-control">
+              <option value="">— All Employees —</option>
+              <% employees.forEach(function(emp) { %>
+              <option value="<%= emp._id %>"
+                <%= filters.employeeId === String(emp._id) ? 'selected' : '' %>>
+                <%= emp.firstName %> <%= emp.lastName %> (<%= emp.employeeCode %>)
+              </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Project</label>
+            <input type="text" name="projectName" class="form-control"
+              placeholder="Filter by project name"
+              value="<%= filters.projectName %>">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Work Type</label>
+            <select name="workType" class="form-control">
+              <option value="">— All —</option>
+              <option value="billable" <%= filters.workType === 'billable' ? 'selected' : '' %>>Billable</option>
+              <option value="non-billable" <%= filters.workType === 'non-billable' ? 'selected' : '' %>>Non-Billable</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Status</label>
+            <select name="status" class="form-control">
+              <option value="">— All —</option>
+              <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>>Draft</option>
+              <option value="submitted" <%= filters.status === 'submitted' ? 'selected' : '' %>>Submitted</option>
+              <option value="approved" <%= filters.status === 'approved' ? 'selected' : '' %>>Approved</option>
+              <option value="rejected" <%= filters.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary btn-block mb-3">
+            <i class="fas fa-search mr-1"></i> Search
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Date From</label>
+            <input type="date" name="dateFrom" class="form-control" value="<%= filters.dateFrom %>">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Date To</label>
+            <input type="date" name="dateTo" class="form-control" value="<%= filters.dateTo %>">
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<% if (result) { %>
+<!-- Summary -->
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Hours</div>
+        <div class="h5 mb-0 font-weight-bold"><%= result.totalHours %> hrs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Billable</div>
+        <div class="h5 mb-0 font-weight-bold"><%= result.billableHours %> hrs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Non-Billable</div>
+        <div class="h5 mb-0 font-weight-bold"><%= result.nonBillableHours %> hrs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Results Table -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex align-items-center justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Results (<%= result.entries.length %> entries)</h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-sm mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Project</th>
+            <th>Task</th>
+            <th>Hours</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (result.entries.length === 0) { %>
+          <tr>
+            <td colspan="8" class="text-center py-4 text-muted">No entries found for the selected filters.</td>
+          </tr>
+          <% } else { %>
+            <% result.entries.forEach(function(entry) { %>
+            <tr>
+              <td class="small">
+                <strong><%= entry.employeeId ? entry.employeeId.firstName + ' ' + entry.employeeId.lastName : '—' %></strong>
+                <br><span class="text-muted"><%= entry.employeeId ? entry.employeeId.employeeCode : '' %></span>
+              </td>
+              <td class="small"><%= new Date(entry.date).toLocaleDateString('en-IN') %></td>
+              <td class="small"><%= entry.projectName %></td>
+              <td class="small"><%= entry.taskDescription.length > 50 ? entry.taskDescription.substring(0,50) + '…' : entry.taskDescription %></td>
+              <td><strong><%= entry.hours %></strong></td>
+              <td>
+                <span class="badge <%= entry.workType === 'billable' ? 'badge-success' : 'badge-secondary' %>">
+                  <%= entry.workType %>
+                </span>
+              </td>
+              <td>
+                <% if (entry.status === 'approved') { %>
+                  <span class="badge badge-success">Approved</span>
+                <% } else if (entry.status === 'submitted') { %>
+                  <span class="badge badge-warning">Submitted</span>
+                <% } else if (entry.status === 'rejected') { %>
+                  <span class="badge badge-danger">Rejected</span>
+                <% } else { %>
+                  <span class="badge badge-secondary">Draft</span>
+                <% } %>
+              </td>
+              <td class="text-nowrap">
+                <% if (entry.status === 'submitted') { %>
+                <form action="/timesheet/<%= entry._id %>/approve?_method=PUT" method="POST" class="d-inline">
+                  <button class="btn btn-xs btn-success mr-1" title="Approve">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </form>
+                <form action="/timesheet/<%= entry._id %>/reject?_method=PUT" method="POST" class="d-inline"
+                  onsubmit="this.querySelector('[name=comment]').value = prompt('Rejection reason:','') || ''; return true;">
+                  <input type="hidden" name="comment">
+                  <button type="submit" class="btn btn-xs btn-danger" title="Reject">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </form>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% } else { %>
+<div class="text-center py-5 text-muted">
+  <i class="fas fa-search fa-3x d-block mb-3 text-gray-300"></i>
+  Apply filters above to see timesheet entries.
+</div>
+<% } %>
+
+<style>
+.btn-xs { padding: .15rem .4rem; font-size: .75rem; line-height: 1.5; border-radius: .2rem; }
+</style>

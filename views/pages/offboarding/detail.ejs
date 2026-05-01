@@ -1,0 +1,267 @@
+
+
+<%
+  const statusColor = { initiated: 'warning', 'in-progress': 'info', completed: 'success', cancelled: 'secondary' };
+  const pct = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+  const canComplete = completedCount === totalItems &&
+    offboarding.exitInterview && offboarding.exitInterview.isCompleted &&
+    offboarding.finalSettlement && offboarding.finalSettlement.processedAt;
+%>
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">
+    Offboarding —
+    <%= offboarding.employeeId ? `${offboarding.employeeId.firstName} ${offboarding.employeeId.lastName}` : '' %>
+  </h1>
+  <div>
+    <span class="badge badge-<%= statusColor[offboarding.status] || 'secondary' %> badge-lg p-2 mr-2">
+      <%= offboarding.status.toUpperCase() %>
+    </span>
+    <a href="/offboarding" class="btn btn-secondary btn-sm">Back</a>
+  </div>
+</div>
+
+<!-- Employee Info + Offboarding Details -->
+<div class="row mb-4">
+  <div class="col-lg-5">
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Employee & Exit Details</h6>
+      </div>
+      <div class="card-body">
+        <% if (offboarding.employeeId) { %>
+          <p><strong>Employee:</strong> <%= offboarding.employeeId.firstName %> <%= offboarding.employeeId.lastName %></p>
+          <p><strong>Code:</strong> <code><%= offboarding.employeeId.employeeCode %></code></p>
+          <p><strong>Email:</strong> <%= offboarding.employeeId.email %></p>
+          <p><strong>Designation:</strong> <%= offboarding.employeeId.designation || '—' %></p>
+          <% if (offboarding.employeeId.joiningDate) { %>
+            <p><strong>Joined:</strong> <%= new Date(offboarding.employeeId.joiningDate).toLocaleDateString('en-IN') %></p>
+          <% } %>
+        <% } %>
+        <hr>
+        <p><strong>Exit Type:</strong> <span class="badge badge-secondary"><%= offboarding.exitType %></span></p>
+        <% if (offboarding.resignationDate) { %>
+          <p><strong>Resignation Date:</strong> <%= new Date(offboarding.resignationDate).toLocaleDateString('en-IN') %></p>
+        <% } %>
+        <p><strong>Last Working Day:</strong> <strong><%= new Date(offboarding.lastWorkingDay).toLocaleDateString('en-IN') %></strong></p>
+        <% if (offboarding.noticePeriod) { %>
+          <p><strong>Notice Period:</strong> <%= offboarding.noticePeriod %> days</p>
+        <% } %>
+        <p><strong>Reason:</strong> <%= offboarding.reason %></p>
+        <p><strong>Initiated By:</strong> <%= offboarding.initiatedBy ? `${offboarding.initiatedBy.firstName} ${offboarding.initiatedBy.lastName}` : '—' %></p>
+        <% if (offboarding.completedAt) { %>
+          <p><strong>Completed On:</strong> <%= new Date(offboarding.completedAt).toLocaleDateString('en-IN') %></p>
+        <% } %>
+
+        <% if (['initiated','in-progress'].includes(offboarding.status)) { %>
+          <hr>
+          <form method="POST" action="/offboarding/<%= offboarding._id %>/cancel?_method=PUT" class="d-inline"
+            onsubmit="return confirm('Cancel this offboarding? Employee status will revert to active.')">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Offboarding</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="col-lg-7">
+    <div class="card shadow">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Checklist</h6>
+        <span><%= completedCount %>/<%= totalItems %> completed</span>
+      </div>
+      <div class="card-body">
+        <div class="progress mb-3" style="height:10px;">
+          <div class="progress-bar bg-<%= pct === 100 ? 'success' : 'primary' %>"
+            style="width:<%= pct %>%"></div>
+        </div>
+        <% if (offboarding.checklist && offboarding.checklist.length > 0) { %>
+          <% offboarding.checklist.forEach((item, idx) => { %>
+            <div class="d-flex align-items-center mb-2 p-2 border rounded <%= item.isCompleted ? 'bg-light' : '' %>">
+              <div class="flex-grow-1">
+                <span class="<%= item.isCompleted ? 'text-muted' : '' %>">
+                  <% if (item.isCompleted) { %>
+                    <i class="fas fa-check-circle text-success mr-2"></i>
+                  <% } else { %>
+                    <i class="far fa-circle text-secondary mr-2"></i>
+                  <% } %>
+                  <%= item.item %>
+                </span>
+                <% if (item.isCompleted && item.completedBy) { %>
+                  <br><small class="text-muted ml-4">
+                    By <%= item.completedBy.firstName %> <%= item.completedBy.lastName %>
+                    on <%= new Date(item.completedAt).toLocaleDateString('en-IN') %>
+                    <% if (item.notes) { %> — "<%= item.notes %>"<% } %>
+                  </small>
+                <% } %>
+              </div>
+              <% if (!offboarding.status.includes('completed') && !offboarding.status.includes('cancelled')) { %>
+                <% if (!item.isCompleted) { %>
+                  <form method="POST" action="/offboarding/<%= offboarding._id %>/checklist/<%= idx %>?_method=PUT" class="ml-2 d-flex">
+                    <input type="text" name="notes" class="form-control form-control-sm mr-1" placeholder="Notes" style="width:120px">
+                    <button type="submit" class="btn btn-success btn-sm">Done</button>
+                  </form>
+                <% } else { %>
+                  <form method="POST" action="/offboarding/<%= offboarding._id %>/checklist/<%= idx %>/unmark?_method=PUT" class="ml-2">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Undo</button>
+                  </form>
+                <% } %>
+              <% } %>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Exit Interview + Settlement -->
+<div class="row mb-4">
+  <!-- Exit Interview -->
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Exit Interview</h6>
+        <% if (offboarding.exitInterview && offboarding.exitInterview.isCompleted) { %>
+          <span class="badge badge-success">Completed</span>
+        <% } else { %>
+          <span class="badge badge-secondary">Pending</span>
+        <% } %>
+      </div>
+      <div class="card-body">
+        <% if (['initiated','in-progress'].includes(offboarding.status)) { %>
+        <form method="POST" action="/offboarding/<%= offboarding._id %>/interview?_method=PUT">
+          <div class="form-group">
+            <label>Scheduled Date/Time</label>
+            <input type="datetime-local" name="scheduledAt" class="form-control form-control-sm"
+              value="<%= offboarding.exitInterview && offboarding.exitInterview.scheduledAt ? new Date(offboarding.exitInterview.scheduledAt).toISOString().slice(0,16) : '' %>">
+          </div>
+          <div class="form-group">
+            <label>Conducted By</label>
+            <select name="conductedBy" class="form-control form-control-sm">
+              <option value="">— Select —</option>
+              <% employees.forEach(e => { %>
+                <option value="<%= e._id %>"
+                  <%= offboarding.exitInterview && offboarding.exitInterview.conductedBy &&
+                     String(offboarding.exitInterview.conductedBy._id || offboarding.exitInterview.conductedBy) === String(e._id) ? 'selected' : '' %>>
+                  <%= e.firstName %> <%= e.lastName %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Employee Rating of Company (1–5)</label>
+            <select name="rating" class="form-control form-control-sm">
+              <option value="">—</option>
+              <% [1,2,3,4,5].forEach(r => { %>
+                <option value="<%= r %>"
+                  <%= offboarding.exitInterview && offboarding.exitInterview.rating === r ? 'selected' : '' %>><%= r %> ⭐</option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Feedback</label>
+            <textarea name="feedback" class="form-control form-control-sm" rows="3"><%= offboarding.exitInterview ? offboarding.exitInterview.feedback || '' : '' %></textarea>
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="interviewDone"
+                name="isCompleted" value="true"
+                <%= offboarding.exitInterview && offboarding.exitInterview.isCompleted ? 'checked' : '' %>>
+              <label class="custom-control-label" for="interviewDone">Mark as Completed</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Save Interview</button>
+        </form>
+        <% } else if (offboarding.exitInterview) { %>
+          <p><strong>Scheduled:</strong> <%= offboarding.exitInterview.scheduledAt ? new Date(offboarding.exitInterview.scheduledAt).toLocaleString('en-IN') : '—' %></p>
+          <p><strong>Rating:</strong> <%= offboarding.exitInterview.rating ? offboarding.exitInterview.rating + '/5' : '—' %></p>
+          <p><strong>Feedback:</strong> <%= offboarding.exitInterview.feedback || '—' %></p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final Settlement -->
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Final Settlement</h6>
+        <% if (offboarding.finalSettlement && offboarding.finalSettlement.processedAt) { %>
+          <span class="badge badge-success">Processed</span>
+        <% } else { %>
+          <span class="badge badge-secondary">Pending</span>
+        <% } %>
+      </div>
+      <div class="card-body">
+        <% if (['initiated','in-progress'].includes(offboarding.status)) { %>
+        <form method="POST" action="/offboarding/<%= offboarding._id %>/settlement?_method=PUT">
+          <div class="row">
+            <div class="col-6">
+              <div class="form-group">
+                <label>Basic Salary (₹)</label>
+                <input type="number" name="basicSalary" class="form-control form-control-sm" min="0"
+                  value="<%= offboarding.finalSettlement ? offboarding.finalSettlement.basicSalary || '' : '' %>">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label>Leave Encashment (₹)</label>
+                <input type="number" name="leaveEncashment" class="form-control form-control-sm" min="0"
+                  value="<%= offboarding.finalSettlement ? offboarding.finalSettlement.leaveEncashment || '' : '' %>">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label>Bonus (₹)</label>
+                <input type="number" name="bonus" class="form-control form-control-sm" min="0"
+                  value="<%= offboarding.finalSettlement ? offboarding.finalSettlement.bonus || '' : '' %>">
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group">
+                <label>Deductions (₹)</label>
+                <input type="number" name="deductions" class="form-control form-control-sm" min="0"
+                  value="<%= offboarding.finalSettlement ? offboarding.finalSettlement.deductions || '' : '' %>">
+              </div>
+            </div>
+          </div>
+          <div class="alert alert-light border p-2 mb-2 text-sm">
+            <strong>Net Payable = Basic + Leave Encashment + Bonus − Deductions</strong>
+          </div>
+          <button type="submit" class="btn btn-success btn-sm">Save Settlement</button>
+        </form>
+        <% } else if (offboarding.finalSettlement && offboarding.finalSettlement.processedAt) { %>
+          <p><strong>Basic Salary:</strong> ₹<%= (offboarding.finalSettlement.basicSalary || 0).toLocaleString('en-IN') %></p>
+          <p><strong>Leave Encashment:</strong> ₹<%= (offboarding.finalSettlement.leaveEncashment || 0).toLocaleString('en-IN') %></p>
+          <p><strong>Bonus:</strong> ₹<%= (offboarding.finalSettlement.bonus || 0).toLocaleString('en-IN') %></p>
+          <p><strong>Deductions:</strong> ₹<%= (offboarding.finalSettlement.deductions || 0).toLocaleString('en-IN') %></p>
+          <hr>
+          <p class="h5 font-weight-bold text-success">Net Payable: ₹<%= (offboarding.finalSettlement.netPayable || 0).toLocaleString('en-IN') %></p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Offboarding -->
+<% if (['initiated','in-progress'].includes(offboarding.status)) { %>
+<div class="card shadow mb-4 border-left-<%= canComplete ? 'success' : 'secondary' %>">
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <div>
+      <h6 class="font-weight-bold mb-1">Complete Offboarding</h6>
+      <small class="text-muted">
+        Requires: All checklist items ✓ &nbsp;|&nbsp; Exit interview ✓ &nbsp;|&nbsp; Settlement processed ✓
+        <br>On completion: employee account will be deactivated.
+      </small>
+    </div>
+    <form method="POST" action="/offboarding/<%= offboarding._id %>/complete?_method=PUT"
+      onsubmit="return confirm('Complete offboarding? This will deactivate the employee account.')">
+      <button type="submit" class="btn btn-success" <%= canComplete ? '' : 'disabled' %>>
+        <i class="fas fa-check-circle mr-1"></i> Complete Offboarding
+      </button>
+    </form>
+  </div>
+</div>
+<% } %>

@@ -1,0 +1,122 @@
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Leave Report</h1>
+  <div>
+    <a href="/reports/leave/export?<%= new URLSearchParams(filters).toString() %>" class="btn btn-success btn-sm">
+      <i class="fas fa-download mr-1"></i> Export PDF
+    </a>
+    <a href="/reports" class="btn btn-secondary btn-sm ml-1">Back</a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+  <div class="card-body py-3">
+    <form method="GET" action="/reports/leave" class="form-inline flex-wrap">
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Department</label>
+        <select name="departmentId" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% departments.forEach(d => { %>
+            <option value="<%= d._id %>" <%= filters.departmentId === String(d._id) ? 'selected' : '' %>><%= d.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Leave Type</label>
+        <select name="leaveType" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% ['casual','sick','earned','unpaid'].forEach(t => { %>
+            <option value="<%= t %>" <%= filters.leaveType === t ? 'selected' : '' %>><%= t %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <label class="mr-2">Status</label>
+        <select name="status" class="form-control form-control-sm">
+          <option value="">All</option>
+          <% ['pending','approved','rejected'].forEach(s => { %>
+            <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="<%= filters.dateFrom || '' %>" placeholder="From">
+      </div>
+      <div class="form-group mr-3 mb-2">
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="<%= filters.dateTo || '' %>" placeholder="To">
+      </div>
+      <button type="submit" class="btn btn-success btn-sm mb-2">Apply</button>
+      <a href="/reports/leave" class="btn btn-secondary btn-sm mb-2 ml-2">Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Leaves Taken</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.totalLeavesTaken %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Avg per Employee</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.avgLeavesPerEmployee %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-primary shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Most Used Type</div>
+        <div class="h5 mb-0 font-weight-bold text-capitalize"><%= summary.mostUsedType %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sick Leaves Total</div>
+        <div class="h5 mb-0 font-weight-bold"><%= summary.typeCount.sick %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>Name</th><th>Code</th><th>Dept</th>
+            <th>Casual</th><th>Sick</th><th>Earned</th><th>Unpaid</th>
+            <th>Total Taken</th><th>Pending Apps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(r => { %>
+            <tr>
+              <td><%= r.name %></td>
+              <td><code><%= r.code %></code></td>
+              <td><%= r.department %></td>
+              <td><%= r.casual %></td>
+              <td><%= r.sick %></td>
+              <td><%= r.earned %></td>
+              <td><%= r.unpaid %></td>
+              <td class="font-weight-bold"><%= r.total %></td>
+              <td><% if(r.pending > 0) { %><span class="badge badge-warning"><%= r.pending %></span><% } else { %>0<% } %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

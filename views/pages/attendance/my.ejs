@@ -1,0 +1,207 @@
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4 pt-3">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-clock mr-2 text-primary"></i> My Attendance
+  </h1>
+</div>
+
+<!-- ── Today's Check-in Card ─────────────────────────────────────────────────── -->
+<div class="row mb-4">
+  <div class="col-lg-6">
+    <div class="card shadow border-left-primary h-100">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">
+              Today — <%= new Date().toLocaleDateString('en-IN', { weekday:'long', day:'2-digit', month:'long', year:'numeric' }) %>
+            </div>
+
+            <% if (!todayAttendance || !todayAttendance.checkIn) { %>
+              <!-- Not checked in yet -->
+              <p class="text-muted mb-3">You have not checked in today.</p>
+              <form action="/attendance/checkin" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-success btn-sm">
+                  <i class="fas fa-sign-in-alt mr-1"></i> Check In
+                </button>
+              </form>
+
+            <% } else if (todayAttendance.checkIn && !todayAttendance.checkOut) { %>
+              <!-- Checked in, not checked out -->
+              <div class="mb-2">
+                <span class="badge badge-success mr-2">Checked In</span>
+                <% if (todayAttendance.isLate) { %>
+                  <span class="badge badge-warning">Late</span>
+                <% } %>
+              </div>
+              <p class="mb-1 small">
+                <strong>Check-in :</strong>
+                <%= new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) %>
+              </p>
+              <form action="/attendance/checkout" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-warning btn-sm mt-2">
+                  <i class="fas fa-sign-out-alt mr-1"></i> Check Out
+                </button>
+              </form>
+
+            <% } else { %>
+              <!-- Fully checked out -->
+              <div class="mb-2">
+                <span class="badge badge-primary">Day Complete</span>
+                <% if (todayAttendance.isLate) { %><span class="badge badge-warning ml-1">Late</span><% } %>
+              </div>
+              <p class="mb-1 small">
+                <strong>Check-in  :</strong>
+                <%= new Date(todayAttendance.checkIn).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) %>
+              </p>
+              <p class="mb-1 small">
+                <strong>Check-out :</strong>
+                <%= new Date(todayAttendance.checkOut).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) %>
+              </p>
+              <p class="mb-0 small text-success">
+                <strong>Hours Worked :</strong> <%= todayAttendance.workHours %> hrs
+                <% if (todayAttendance.overtime > 0) { %>
+                  &nbsp;<span class="badge badge-info">+<%= todayAttendance.overtime %> OT</span>
+                <% } %>
+              </p>
+            <% } %>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-fingerprint fa-3x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Month/Year filter -->
+  <div class="col-lg-6">
+    <div class="card shadow h-100">
+      <div class="card-body d-flex align-items-center">
+        <form method="GET" action="/attendance/my" class="w-100">
+          <p class="font-weight-bold text-gray-700 mb-3">View Monthly Attendance</p>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label class="small text-gray-600">Month</label>
+              <select name="month" class="form-control form-control-sm">
+                <% const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']; %>
+                <% for (let m = 1; m <= 12; m++) { %>
+                  <option value="<%= m %>" <%= m === selectedMonth ? 'selected' : '' %>><%= monthNames[m-1] %></option>
+                <% } %>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label class="small text-gray-600">Year</label>
+              <select name="year" class="form-control form-control-sm">
+                <% for (let y = new Date().getFullYear(); y >= new Date().getFullYear() - 2; y--) { %>
+                  <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
+                <% } %>
+              </select>
+            </div>
+            <div class="form-group col-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary btn-sm btn-block">Go</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Monthly Summary Cards ──────────────────────────────────────────────────── -->
+<%
+  const present = records.filter(r => ['present','late'].includes(r.status)).length;
+  const late    = records.filter(r => r.status === 'late').length;
+  const absent  = records.filter(r => r.status === 'absent').length;
+  const onLeave = records.filter(r => r.status === 'on-leave').length;
+  const totalHrs = records.reduce((sum, r) => sum + (r.workHours || 0), 0).toFixed(1);
+%>
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-success shadow py-2">
+      <div class="card-body py-2">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Present Days</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= present %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-warning shadow py-2">
+      <div class="card-body py-2">
+        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Late Days</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= late %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-danger shadow py-2">
+      <div class="card-body py-2">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Absent Days</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= absent %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-info shadow py-2">
+      <div class="card-body py-2">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Hours</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= totalHrs %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Attendance Table ────────────────────────────────────────────────────────── -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">
+      Attendance Log — <%= ['January','February','March','April','May','June','July','August','September','October','November','December'][selectedMonth-1] %> <%= selectedYear %>
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-sm table-datatable" width="100%" cellspacing="0">
+        <thead class="thead-light">
+          <tr>
+            <th>Date</th>
+            <th>Day</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Hours</th>
+            <th>OT</th>
+            <th>Status</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; %>
+          <% records.forEach(function(r) { %>
+            <tr class="<%= r.status === 'absent' ? 'table-danger' : (r.status === 'on-leave' ? 'table-warning' : '') %>">
+              <td class="small font-weight-bold">
+                <%= new Date(r.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short' }) %>
+              </td>
+              <td class="small text-muted"><%= dayNames[new Date(r.date).getDay()] %></td>
+              <td class="small">
+                <%= r.checkIn ? new Date(r.checkIn).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) : '—' %>
+              </td>
+              <td class="small">
+                <%= r.checkOut ? new Date(r.checkOut).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) : '—' %>
+              </td>
+              <td class="small"><%= r.workHours ? r.workHours + ' h' : '—' %></td>
+              <td class="small text-info"><%= r.overtime ? r.overtime + ' h' : '—' %></td>
+              <td>
+                <% if (r.status === 'present') { %><span class="badge badge-success">Present</span>
+                <% } else if (r.status === 'late') { %><span class="badge badge-warning">Late</span>
+                <% } else if (r.status === 'absent') { %><span class="badge badge-danger">Absent</span>
+                <% } else if (r.status === 'half-day') { %><span class="badge badge-info">Half Day</span>
+                <% } else if (r.status === 'on-leave') { %><span class="badge badge-primary">On Leave</span>
+                <% } else if (r.status === 'holiday') { %><span class="badge badge-secondary">Holiday</span>
+                <% } %>
+              </td>
+              <td class="small text-muted"><%= r.note || '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
